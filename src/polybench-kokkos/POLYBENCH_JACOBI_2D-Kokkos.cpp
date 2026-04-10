@@ -8,8 +8,11 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_JACOBI_2D.hpp"
+
 #if defined(RUN_KOKKOS)
+
 #include "common/KokkosViewUtils.hpp"
+
 #include <iostream>
 
 namespace rajaperf {
@@ -72,8 +75,7 @@ void POLYBENCH_JACOBI_2D::runKokkosVariant(VariantID vid) {
   }
 }
 
-RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(POLYBENCH_JACOBI_2D, Kokkos,
-                                           Kokkos_Lambda)
+RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(POLYBENCH_JACOBI_2D, Kokkos, Kokkos_Lambda)
 
 }  // end namespace polybench
 }  // end namespace rajaperf

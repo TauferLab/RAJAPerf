@@ -80,7 +80,6 @@ public:
   void defineOpenMPVariantTunings();
   void defineOpenMPTargetVariantTunings();
   void defineKokkosVariantTunings();
-
   void defineCudaVariantTunings();
   void defineHipVariantTunings();
   void defineSyclVariantTunings();

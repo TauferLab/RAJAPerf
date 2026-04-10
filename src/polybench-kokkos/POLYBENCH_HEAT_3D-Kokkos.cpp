@@ -8,8 +8,11 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_HEAT_3D.hpp"
+
 #if defined(RUN_KOKKOS)
+
 #include "common/KokkosViewUtils.hpp"
+
 #include <iostream>
 
 namespace rajaperf {
@@ -83,8 +86,7 @@ void POLYBENCH_HEAT_3D::runKokkosVariant(VariantID vid) {
   }
 }
 
-RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(POLYBENCH_HEAT_3D, Kokkos,
-                                           Kokkos_Lambda)
+RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(POLYBENCH_HEAT_3D, Kokkos, Kokkos_Lambda)
 
 }  // end namespace polybench
 }  // end namespace rajaperf
