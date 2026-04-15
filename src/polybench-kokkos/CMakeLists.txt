@@ -11,6 +11,7 @@ blt_add_library(
   NAME polybench-kokkos
   SOURCES
           POLYBENCH_HEAT_3D-Kokkos.cpp
+          POLYBENCH_JACOBI_1D-Kokkos.cpp
           POLYBENCH_JACOBI_2D-Kokkos.cpp
   INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../polybench
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
