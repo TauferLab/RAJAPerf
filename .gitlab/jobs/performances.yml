@@ -33,10 +33,10 @@ clang_14_0_6_mpi_caliper:
     PERF_MPI_EXEC: "srun --overlap -n 112"
   extends: .perf_on_dane
 
-rocmcc_6_4_1_hip_openmp_caliper:
+rocmcc_6_4_3_hip_openmp_caliper:
   variables:
     # Use Caliper 2.13.1 to avoid issue in 2.14.0-- CMake issue where rocprofiler-sdk targets are referenced before being defined
-    SPEC: "~shared +rocm +openmp +caliper amdgpu_target=gfx942 %rocmcc@=6.4.1 ^hip@6.4.1 ^caliper@2.13.1~shared~libunwind ^adiak~shared~mpi"
+    SPEC: "~shared +rocm +openmp +caliper amdgpu_target=gfx942 %rocmcc@=6.4.3 ^hip@6.4.3 ^caliper@2.13.1~shared~libunwind ^adiak~shared~mpi"
     PERF_KERNELS: "Basic"
     PERF_VARIANTS: "RAJA_HIP"
     PERF_RUN_OPTS: "--sizefact 5.0"
@@ -48,7 +48,7 @@ process_results:
     - clang_14_0_6_openmp_caliper
     - gcc_10_3_1_openmp_caliper
     - clang_14_0_6_mpi_caliper
-    - rocmcc_6_4_1_hip_openmp_caliper
+    - rocmcc_6_4_3_hip_openmp_caliper
 
 report_results:
   extends: .report_to_gh_benchmark
