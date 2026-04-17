@@ -23,7 +23,6 @@ void POLYBENCH_HEAT_3D::runKokkosVariant(VariantID vid) {
 
   POLYBENCH_HEAT_3D_DATA_SETUP;
 
-  // Views 3D : dimension order (i, j, k), i.e. (N, N, N)
   auto A_view = getViewFromPointer(A, N, N, N);
   auto B_view = getViewFromPointer(B, N, N, N);
 
