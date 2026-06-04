@@ -384,7 +384,7 @@ then
     print_info "Project Dir  ${project_dir}"
 
     # Map CPU core allocations
-    declare -A core_counts=(["lassen"]=40 ["poodle"]=28 ["dane"]=28 ["matrix"]=28 ["corona"]=32 ["rzansel"]=48 ["tioga"]=32 ["tuolumne"]=48)
+    declare -A core_counts=(["dane"]=28 ["matrix"]=28 ["corona"]=32 ["rzansel"]=48 ["tioga"]=32 ["tuolumne"]=48)
 
     # If using Multi-project, set up the submodule
     if [[ -n ${raja_version} ]]
@@ -410,7 +410,7 @@ then
     # Shared allocation: Allows build_and_test.sh to run within a sub-allocation (see CI config).
     # Use /dev/shm: Prevent MPI tests from running on a node where the build dir doesn't exist.
     cmake_options=""
-    if [[ "${truehostname}" == "poodle" || "${truehostname}" == "dane" ]]
+    if [[ "${truehostname}" == "dane" || "${truehostname}" == "matrix" ]]
     then
         cmake_options="-DBLT_MPI_COMMAND_APPEND:STRING=--overlap"
     fi
@@ -424,7 +424,14 @@ then
         section_end
     else
         status=$?
-        section_end ; print_error "CMake configuration failed"
+        section_end ; print_error "CMake configuration failed, dumping output..."
+
+        $cmake_exe \
+          -C ${hostconfig_path} \
+          ${cmake_options} \
+          -DCMAKE_INSTALL_PREFIX=${install_dir} \
+          ${project_dir} --debug-output --trace-expand
+
         exit ${status}
     fi
 
