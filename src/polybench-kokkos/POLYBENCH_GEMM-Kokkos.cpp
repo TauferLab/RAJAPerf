@@ -29,11 +29,13 @@ void POLYBENCH_GEMM::runKokkosVariant(VariantID vid) {
 
   switch (vid) {
     case Kokkos_Lambda: {
+
       Kokkos::fence();
       startTimer();
 
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         Kokkos::parallel_for(
             "POLYBENCH_GEMM Kokkos_Lambda",
             Kokkos::MDRangePolicy<Kokkos::Rank<2>,
@@ -52,10 +54,6 @@ void POLYBENCH_GEMM::runKokkosVariant(VariantID vid) {
       Kokkos::fence();
       stopTimer();
 
-      moveDataToHostFromKokkosView(A, A_view, ni, nk);
-      moveDataToHostFromKokkosView(B, B_view, nk, nj);
-      moveDataToHostFromKokkosView(C, C_view, ni, nj);
-
       break;
     }
 
@@ -64,10 +62,13 @@ void POLYBENCH_GEMM::runKokkosVariant(VariantID vid) {
                 << std::endl;
     }
   }
+
+  moveDataToHostFromKokkosView(A, A_view, ni, nk);
+  moveDataToHostFromKokkosView(B, B_view, nk, nj);
+  moveDataToHostFromKokkosView(C, C_view, ni, nj);
 }
 
-RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(POLYBENCH_GEMM, Kokkos,
-                                           Kokkos_Lambda)
+RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(POLYBENCH_GEMM, Kokkos, Kokkos_Lambda)
 
 }  // end namespace polybench
 }  // end namespace rajaperf
