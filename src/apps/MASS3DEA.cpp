@@ -46,7 +46,7 @@ MASS3DEA::MASS3DEA(const RunParams& params)
 
 void MASS3DEA::setSize(Index_type target_size, Index_type target_reps)
 {
-  const Index_type ea_mat_entries = mea::D1D*mea::D1D*mea::D1D*mea::D1D*mea::D1D*mea::D1D;
+  const Index_type ea_mat_entries = mea::D1D * mea::D1D * mea::D1D * mea::D1D * mea::D1D * mea::D1D;
   const Index_type qpt_entries = mea::Q1D * mea::Q1D * mea::Q1D;
   const Index_type flops_per_qpt = 7;
 
