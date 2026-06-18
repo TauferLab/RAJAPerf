@@ -69,7 +69,7 @@ void DIFFUSION3DPA::setSize(Index_type target_size, Index_type target_reps)
                          (6 * diff::D1D  + 15) * diff::Q1D * diff::Q1D * diff::Q1D + //DIFFUSION3DPA_5
                          (6 * diff::Q1D) * diff::D1D * diff::Q1D * diff::Q1D + //DIFFUSION3DPA_7
                          (6 * diff::Q1D) * diff::D1D * diff::D1D * diff::Q1D + //DIFFUSION3DPA_8
-                         (6 * diff::Q1D + 3)*diff::D1D*diff::D1D*diff::D1D)); //DIFFUSION3DPA_9
+                         (6 * diff::Q1D + 3) * diff::D1D * diff::D1D * diff::D1D)); //DIFFUSION3DPA_9
 }
 
 DIFFUSION3DPA::~DIFFUSION3DPA()
