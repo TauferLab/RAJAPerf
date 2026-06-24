@@ -65,15 +65,19 @@ void POLYBENCH_JACOBI_1D::runHipVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
       constexpr size_t shmem = 0;
 
+      CALI_MARK_BEGIN("JACOBI_1D_1");
       RPlaunchHipKernel( (poly_jacobi_1D_1<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          A, B, N );
+      CALI_MARK_END("JACOBI_1D_1");
 
+      CALI_MARK_BEGIN("JACOBI_1D_2");
       RPlaunchHipKernel( (poly_jacobi_1D_2<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          A, B, N );
+      CALI_MARK_END("JACOBI_1D_2");
 
     }
     stopTimer();
