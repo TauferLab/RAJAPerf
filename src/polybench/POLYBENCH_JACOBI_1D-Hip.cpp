@@ -65,19 +65,19 @@ void POLYBENCH_JACOBI_1D::runHipVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
       constexpr size_t shmem = 0;
 
-      CALI_MARK_BEGIN((getName() + "_1").c_str());
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       RPlaunchHipKernel( (poly_jacobi_1D_1<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          A, B, N );
-      CALI_MARK_END((getName() + "_1").c_str());
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
-      CALI_MARK_BEGIN((getName() + "_2").c_str());
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       RPlaunchHipKernel( (poly_jacobi_1D_2<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          A, B, N );
-      CALI_MARK_END((getName() + "_2").c_str());
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
     }
     stopTimer();
@@ -90,19 +90,19 @@ void POLYBENCH_JACOBI_1D::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-      CALI_MARK_BEGIN((getName() + "_1").c_str());
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{1, N-1},
         [=] __device__ (Index_type i) {
           POLYBENCH_JACOBI_1D_BODY1;
       });
-      CALI_MARK_END((getName() + "_1").c_str());
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
-      CALI_MARK_BEGIN((getName() + "_2").c_str());
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{1, N-1},
         [=] __device__ (Index_type i) {
           POLYBENCH_JACOBI_1D_BODY2;
       });
-      CALI_MARK_END((getName() + "_2").c_str());
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
     }
     stopTimer();
@@ -118,4 +118,3 @@ RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_JACOBI_1D, Hip, Base
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_HIP
-

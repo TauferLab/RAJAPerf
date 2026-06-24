@@ -64,10 +64,15 @@
       doOnceCaliMetaEnd(running_variant,running_tuning); \
     }
 
+#define RP_CALI_MARK_BEGIN(name) if (isCaliperTiming()) { CALI_MARK_BEGIN(name); }
+#define RP_CALI_MARK_END(name) if (isCaliperTiming()) { CALI_MARK_END(name); }
+
 #else
 
 #define CALI_START
 #define CALI_STOP
+#define RP_CALI_MARK_BEGIN(name)
+#define RP_CALI_MARK_END(name)
 
 #endif
 
@@ -639,6 +644,7 @@ public:
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   void caliperOn() { doCaliperTiming = true; }
   void caliperOff() { doCaliperTiming = false; }
+  bool isCaliperTiming() const { return doCaliperTiming; }
   void doOnceCaliMetaBegin(VariantID vid, size_t tune_idx);
   void doOnceCaliMetaEnd(VariantID vid, size_t tune_idx);
   static void setCaliperMgrVariantTuning(VariantID vid,

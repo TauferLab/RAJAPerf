@@ -42,6 +42,7 @@ void POLYBENCH_JACOBI_1D::runSyclVariantImpl(VariantID vid)
 
       const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(N, work_group_size);
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       qu->submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                        [=] (sycl::nd_item<1> item) {
@@ -53,7 +54,9 @@ void POLYBENCH_JACOBI_1D::runSyclVariantImpl(VariantID vid)
 
         });
       });
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       qu->submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                        [=] (sycl::nd_item<1> item) {
@@ -65,6 +68,7 @@ void POLYBENCH_JACOBI_1D::runSyclVariantImpl(VariantID vid)
 
         });
       });
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
     }
     stopTimer();
@@ -77,15 +81,19 @@ void POLYBENCH_JACOBI_1D::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{1, N-1},
         [=] (Index_type i) {
           POLYBENCH_JACOBI_1D_BODY1;
       });
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{1, N-1},
         [=] (Index_type i) {
           POLYBENCH_JACOBI_1D_BODY2;
       });
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
     }
     stopTimer();
@@ -101,4 +109,3 @@ RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_JACOBI_1D, Sycl, Bas
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_SYCL
-
