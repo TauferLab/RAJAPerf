@@ -42,7 +42,7 @@ void GEN_LIN_RECUR::runSyclVariantImpl(VariantID vid)
 
       const size_t global_size1 = work_group_size * RAJA_DIVIDE_CEILING_INT(N, work_group_size);
 
-      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
+      RP_CALI_MARK_BEGIN(RP_CALI_REGION(GEN_LIN_RECUR_1));
       qu->submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<1> (global_size1, work_group_size),
                        [=] (sycl::nd_item<1> item) {
@@ -54,11 +54,11 @@ void GEN_LIN_RECUR::runSyclVariantImpl(VariantID vid)
  
         });
       });
-      RP_CALI_MARK_END((getName() + "_1").c_str());
+      RP_CALI_MARK_END(RP_CALI_REGION(GEN_LIN_RECUR_1));
 
       const size_t global_size2 = work_group_size * RAJA_DIVIDE_CEILING_INT(N+1, work_group_size);
 
-      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
+      RP_CALI_MARK_BEGIN(RP_CALI_REGION(GEN_LIN_RECUR_2));
       qu->submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<1> (global_size2, work_group_size),
                        [=] (sycl::nd_item<1> item) {
@@ -70,7 +70,7 @@ void GEN_LIN_RECUR::runSyclVariantImpl(VariantID vid)
 
         });
       });
-      RP_CALI_MARK_END((getName() + "_2").c_str());
+      RP_CALI_MARK_END(RP_CALI_REGION(GEN_LIN_RECUR_2));
 
     }
     stopTimer();
@@ -81,19 +81,19 @@ void GEN_LIN_RECUR::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-       RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
+       RP_CALI_MARK_BEGIN(RP_CALI_REGION(GEN_LIN_RECUR_1));
        RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >( res,
          RAJA::RangeSegment(0, N), [=] (Index_type k) {
          GEN_LIN_RECUR_BODY1;
        });
-       RP_CALI_MARK_END((getName() + "_1").c_str());
+       RP_CALI_MARK_END(RP_CALI_REGION(GEN_LIN_RECUR_1));
 
-       RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
+       RP_CALI_MARK_BEGIN(RP_CALI_REGION(GEN_LIN_RECUR_2));
        RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >( res,
          RAJA::RangeSegment(1, N+1), [=] (Index_type i) {
          GEN_LIN_RECUR_BODY2;
        });
-       RP_CALI_MARK_END((getName() + "_2").c_str());
+       RP_CALI_MARK_END(RP_CALI_REGION(GEN_LIN_RECUR_2));
 
     }
     stopTimer();

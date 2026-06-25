@@ -159,7 +159,7 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
 
         RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
-          RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
+          RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_MVT_1));
           RAJA::kernel_param_resource<EXEC_POL>(
             RAJA::make_tuple(RAJA::RangeSegment{0, N},
                              RAJA::RangeSegment{0, N}),
@@ -171,9 +171,9 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
             poly_mvt_lam3
 
           );
-          RP_CALI_MARK_END((getName() + "_1").c_str());
+          RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_MVT_1));
 
-          RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
+          RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_MVT_2));
           RAJA::kernel_param_resource<EXEC_POL>(
             RAJA::make_tuple(RAJA::RangeSegment{0, N},
                              RAJA::RangeSegment{0, N}),
@@ -185,7 +185,7 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
             poly_mvt_lam6
 
           );
-          RP_CALI_MARK_END((getName() + "_2").c_str());
+          RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_MVT_2));
 
         }); // end omp parallel region
 

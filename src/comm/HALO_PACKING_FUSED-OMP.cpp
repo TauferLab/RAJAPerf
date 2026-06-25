@@ -69,7 +69,7 @@ void HALO_PACKING_FUSED::runOpenMPVariantDirect(VariantID vid)
           }
         }
 #else
-        RP_CALI_MARK_BEGIN((getName() + "_pack").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_PACKING_FUSED_pack));
         #pragma omp parallel for
         for (Index_type j = 0; j < pack_index; j++) {
           Real_ptr   buffer = pack_ptr_holders[j].buffer;
@@ -80,7 +80,7 @@ void HALO_PACKING_FUSED::runOpenMPVariantDirect(VariantID vid)
             HALO_PACK_BODY;
           }
         }
-        RP_CALI_MARK_END((getName() + "_pack").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(HALO_PACKING_FUSED_pack));
 #endif
         if (separate_buffers) {
           for (Index_type l = 0; l < num_neighbors; ++l) {
@@ -124,7 +124,7 @@ void HALO_PACKING_FUSED::runOpenMPVariantDirect(VariantID vid)
           }
         }
 #else
-        RP_CALI_MARK_BEGIN((getName() + "_unpack").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_PACKING_FUSED_unpack));
         #pragma omp parallel for
         for (Index_type j = 0; j < unpack_index; j++) {
           Real_ptr   buffer = unpack_ptr_holders[j].buffer;
@@ -135,7 +135,7 @@ void HALO_PACKING_FUSED::runOpenMPVariantDirect(VariantID vid)
             HALO_UNPACK_BODY;
           }
         }
-        RP_CALI_MARK_END((getName() + "_unpack").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(HALO_PACKING_FUSED_unpack));
 #endif
 
       }
@@ -183,7 +183,7 @@ void HALO_PACKING_FUSED::runOpenMPVariantDirect(VariantID vid)
           }
         }
 #else
-        RP_CALI_MARK_BEGIN((getName() + "_pack").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_PACKING_FUSED_pack));
         #pragma omp parallel for
         for (Index_type j = 0; j < pack_index; j++) {
           auto       pack_lambda = pack_lambdas[j];
@@ -192,7 +192,7 @@ void HALO_PACKING_FUSED::runOpenMPVariantDirect(VariantID vid)
             pack_lambda(i);
           }
         }
-        RP_CALI_MARK_END((getName() + "_pack").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(HALO_PACKING_FUSED_pack));
 #endif
         if (separate_buffers) {
           for (Index_type l = 0; l < num_neighbors; ++l) {
@@ -234,7 +234,7 @@ void HALO_PACKING_FUSED::runOpenMPVariantDirect(VariantID vid)
           }
         }
 #else
-        RP_CALI_MARK_BEGIN((getName() + "_unpack").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_PACKING_FUSED_unpack));
         #pragma omp parallel for
         for (Index_type j = 0; j < unpack_index; j++) {
           auto       unpack_lambda = unpack_lambdas[j];
@@ -243,7 +243,7 @@ void HALO_PACKING_FUSED::runOpenMPVariantDirect(VariantID vid)
             unpack_lambda(i);
           }
         }
-        RP_CALI_MARK_END((getName() + "_unpack").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(HALO_PACKING_FUSED_unpack));
 #endif
 
       }

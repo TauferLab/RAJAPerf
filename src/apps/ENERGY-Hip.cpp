@@ -130,16 +130,16 @@ void ENERGY::runHipVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
-      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
+      RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_1));
       RPlaunchHipKernel( (energycalc1<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          e_new, e_old, delvc,
                          p_old, q_old, work,
                          iend );
-      RP_CALI_MARK_END((getName() + "_1").c_str());
+      RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_1));
 
-      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
+      RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_2));
       RPlaunchHipKernel( (energycalc2<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
@@ -149,9 +149,9 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                          ql_old, qq_old,
                          rho0,
                          iend );
-      RP_CALI_MARK_END((getName() + "_2").c_str());
+      RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_2));
 
-      RP_CALI_MARK_BEGIN((getName() + "_3").c_str());
+      RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_3));
       RPlaunchHipKernel( (energycalc3<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
@@ -159,18 +159,18 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                          p_old, q_old,
                          pHalfStep, q_new,
                          iend );
-      RP_CALI_MARK_END((getName() + "_3").c_str());
+      RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_3));
 
-      RP_CALI_MARK_BEGIN((getName() + "_4").c_str());
+      RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_4));
       RPlaunchHipKernel( (energycalc4<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          e_new, work,
                          e_cut, emin,
                          iend );
-      RP_CALI_MARK_END((getName() + "_4").c_str());
+      RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_4));
 
-      RP_CALI_MARK_BEGIN((getName() + "_5").c_str());
+      RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_5));
       RPlaunchHipKernel( (energycalc5<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
@@ -182,9 +182,9 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                          pHalfStep, q_new,
                          rho0, e_cut, emin,
                          iend );
-      RP_CALI_MARK_END((getName() + "_5").c_str());
+      RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_5));
 
-      RP_CALI_MARK_BEGIN((getName() + "_6").c_str());
+      RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_6));
       RPlaunchHipKernel( (energycalc6<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
@@ -195,7 +195,7 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                          ql_old, qq_old,
                          rho0, q_cut,
                          iend );
-      RP_CALI_MARK_END((getName() + "_6").c_str());
+      RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_6));
 
     }
     stopTimer();
@@ -210,47 +210,47 @@ void ENERGY::runHipVariantImpl(VariantID vid)
 
       RAJA::region<RAJA::seq_region>( [=]() {
 
-        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_1));
         RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY1;
         });
-        RP_CALI_MARK_END((getName() + "_1").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_1));
 
-        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_2));
         RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY2;
         });
-        RP_CALI_MARK_END((getName() + "_2").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_2));
 
-        RP_CALI_MARK_BEGIN((getName() + "_3").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_3));
         RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY3;
         });
-        RP_CALI_MARK_END((getName() + "_3").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_3));
 
-        RP_CALI_MARK_BEGIN((getName() + "_4").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_4));
         RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY4;
         });
-        RP_CALI_MARK_END((getName() + "_4").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_4));
 
-        RP_CALI_MARK_BEGIN((getName() + "_5").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_5));
         RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY5;
         });
-        RP_CALI_MARK_END((getName() + "_5").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_5));
 
-        RP_CALI_MARK_BEGIN((getName() + "_6").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_6));
         RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY6;
         });
-        RP_CALI_MARK_END((getName() + "_6").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_6));
 
       });  // end sequential region (for single-source code)
 

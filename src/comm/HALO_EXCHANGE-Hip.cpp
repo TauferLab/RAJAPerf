@@ -79,12 +79,12 @@ void HALO_EXCHANGE::runHipVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          RP_CALI_MARK_BEGIN((getName() + "_pack").c_str());
+          RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_pack_k));
           RPlaunchHipKernel( (halo_exchange_pack<block_size>),
                              nblocks, nthreads_per_block,
                              shmem, res.get_stream(),
                              buffer, list, var, len);
-          RP_CALI_MARK_END((getName() + "_pack").c_str());
+          RP_CALI_MARK_END(RP_CALI_REGION(HALO_EXCHANGE_pack_k));
           buffer += len;
         }
 
@@ -117,12 +117,12 @@ void HALO_EXCHANGE::runHipVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          RP_CALI_MARK_BEGIN((getName() + "_unpack").c_str());
+          RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_unpack_k));
           RPlaunchHipKernel( (halo_exchange_unpack<block_size>),
                              nblocks, nthreads_per_block,
                              shmem, res.get_stream(),
                              buffer, list, var, len);
-          RP_CALI_MARK_END((getName() + "_unpack").c_str());
+          RP_CALI_MARK_END(RP_CALI_REGION(HALO_EXCHANGE_unpack_k));
           buffer += len;
         }
       }
@@ -156,11 +156,11 @@ void HALO_EXCHANGE::runHipVariantImpl(VariantID vid)
           auto halo_exchange_pack_base_lam = [=] __device__ (Index_type i) {
                 HALO_PACK_BODY;
               };
-          RP_CALI_MARK_BEGIN((getName() + "_pack").c_str());
+          RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_pack_k));
           RAJA::forall<EXEC_POL>( res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
               halo_exchange_pack_base_lam );
-          RP_CALI_MARK_END((getName() + "_pack").c_str());
+          RP_CALI_MARK_END(RP_CALI_REGION(HALO_EXCHANGE_pack_k));
           buffer += len;
         }
 
@@ -189,11 +189,11 @@ void HALO_EXCHANGE::runHipVariantImpl(VariantID vid)
           auto halo_exchange_unpack_base_lam = [=] __device__ (Index_type i) {
                 HALO_UNPACK_BODY;
               };
-          RP_CALI_MARK_BEGIN((getName() + "_unpack").c_str());
+          RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_unpack_k));
           RAJA::forall<EXEC_POL>( res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
               halo_exchange_unpack_base_lam );
-          RP_CALI_MARK_END((getName() + "_unpack").c_str());
+          RP_CALI_MARK_END(RP_CALI_REGION(HALO_EXCHANGE_unpack_k));
           buffer += len;
         }
       }

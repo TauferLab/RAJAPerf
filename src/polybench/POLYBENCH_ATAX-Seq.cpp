@@ -154,7 +154,7 @@ void POLYBENCH_ATAX::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_ATAX_1));
         RAJA::kernel_param_resource<EXEC_POL1>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
@@ -166,9 +166,9 @@ void POLYBENCH_ATAX::runSeqVariant(VariantID vid)
           poly_atax_lam3
 
         );
-        RP_CALI_MARK_END((getName() + "_1").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_ATAX_1));
 
-        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_ATAX_2));
         RAJA::kernel_param_resource<EXEC_POL2>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
@@ -180,7 +180,7 @@ void POLYBENCH_ATAX::runSeqVariant(VariantID vid)
           poly_atax_lam6
 
         );
-        RP_CALI_MARK_END((getName() + "_2").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_ATAX_2));
 
       }
       stopTimer();

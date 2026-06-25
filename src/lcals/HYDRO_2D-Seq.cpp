@@ -134,29 +134,29 @@ void HYDRO_2D::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(HYDRO_2D_1));
         RAJA::kernel_resource<EXECPOL>(
                      RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                                        RAJA::RangeSegment(jbeg, jend)),
                      res,
                      hydro2d_lam1);
-        RP_CALI_MARK_END((getName() + "_1").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(HYDRO_2D_1));
 
-        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(HYDRO_2D_2));
         RAJA::kernel_resource<EXECPOL>(
                      RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                                        RAJA::RangeSegment(jbeg, jend)),
                      res,
                      hydro2d_lam2);
-        RP_CALI_MARK_END((getName() + "_2").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(HYDRO_2D_2));
 
-        RP_CALI_MARK_BEGIN((getName() + "_3").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(HYDRO_2D_3));
         RAJA::kernel_resource<EXECPOL>(
                      RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                                        RAJA::RangeSegment(jbeg, jend)),
                      res,
                      hydro2d_lam3);
-        RP_CALI_MARK_END((getName() + "_3").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(HYDRO_2D_3));
 
       }
       stopTimer();

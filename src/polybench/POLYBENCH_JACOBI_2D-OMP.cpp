@@ -36,23 +36,23 @@ void POLYBENCH_JACOBI_2D::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_2D_1));
         #pragma omp parallel for
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
             POLYBENCH_JACOBI_2D_BODY1;
           }
         }
-        RP_CALI_MARK_END((getName() + "_1").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_JACOBI_2D_1));
 
-        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_2D_2));
         #pragma omp parallel for
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
             POLYBENCH_JACOBI_2D_BODY2;
           }
         }
-        RP_CALI_MARK_END((getName() + "_2").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_JACOBI_2D_2));
 
       }
       stopTimer();
@@ -73,23 +73,23 @@ void POLYBENCH_JACOBI_2D::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_2D_1));
         #pragma omp parallel for
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
             poly_jacobi2d_base_lam1(i, j);
           }
         }
-        RP_CALI_MARK_END((getName() + "_1").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_JACOBI_2D_1));
 
-        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_2D_2));
         #pragma omp parallel for
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
             poly_jacobi2d_base_lam2(i, j);
           }
         }
-        RP_CALI_MARK_END((getName() + "_2").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_JACOBI_2D_2));
 
       }
       stopTimer();
@@ -123,7 +123,7 @@ void POLYBENCH_JACOBI_2D::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_2D_1));
         RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                            RAJA::RangeSegment{1, N-1}),
@@ -137,7 +137,7 @@ void POLYBENCH_JACOBI_2D::runOpenMPVariant(VariantID vid)
           res,
           poly_jacobi2d_lam2
         );
-        RP_CALI_MARK_END((getName() + "_1").c_str());
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_JACOBI_2D_1));
 
       }
       stopTimer();

@@ -146,11 +146,11 @@ void HALO_PACKING::runSeqVariant(VariantID vid)
             auto halo_packing_pack_base_lam = [=](Index_type i) {
                   HALO_PACK_BODY;
                 };
-            RP_CALI_MARK_BEGIN((getName() + "_pack").c_str());
+            RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_PACKING_pack_k));
             RAJA::forall<EXEC_POL>( res,
                 RAJA::TypedRangeSegment<Index_type>(0, len),
                 halo_packing_pack_base_lam );
-            RP_CALI_MARK_END((getName() + "_pack").c_str());
+            RP_CALI_MARK_END(RP_CALI_REGION(HALO_PACKING_pack_k));
             buffer += len;
           }
 
@@ -172,11 +172,11 @@ void HALO_PACKING::runSeqVariant(VariantID vid)
             auto halo_packing_unpack_base_lam = [=](Index_type i) {
                   HALO_UNPACK_BODY;
                 };
-            RP_CALI_MARK_BEGIN((getName() + "_unpack").c_str());
+            RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_PACKING_unpack_k));
             RAJA::forall<EXEC_POL>( res,
                 RAJA::TypedRangeSegment<Index_type>(0, len),
                 halo_packing_unpack_base_lam );
-            RP_CALI_MARK_END((getName() + "_unpack").c_str());
+            RP_CALI_MARK_END(RP_CALI_REGION(HALO_PACKING_unpack_k));
             buffer += len;
           }
         }
