@@ -67,14 +67,18 @@ void INTSC_HEXHEX::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         #pragma omp parallel for
         for (Index_type i = ibegin ; i < iend ; ++i ) {
           INTSC_HEXHEX_OMP( i, iend ) ;
         }
+        RP_CALI_MARK_END((getName() + "_1").c_str());
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         #pragma omp parallel for
         for (Index_type i = ibegin ; i < n_szpairs ; ++i ) {
           FIXUP_VV_BODY ;
         }
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
       }
       stopTimer();
@@ -88,14 +92,18 @@ void INTSC_HEXHEX::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         #pragma omp parallel for
         for (Index_type i = ibegin ; i < iend ; ++i ) {
           intsc_hexhex_lam(i);
         }
+        RP_CALI_MARK_END((getName() + "_1").c_str());
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         #pragma omp parallel for
         for (Index_type i = ibegin ; i < n_szpairs ; ++i ) {
           fixup_vv_lam( i ) ;
         }
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
       }
       stopTimer();
@@ -111,10 +119,14 @@ void INTSC_HEXHEX::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend), intsc_hexhex_lam);
+        RP_CALI_MARK_END((getName() + "_1").c_str());
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, n_szpairs), fixup_vv_lam);
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
       }
       stopTimer();

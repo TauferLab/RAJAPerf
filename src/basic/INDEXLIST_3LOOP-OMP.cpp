@@ -45,13 +45,16 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         }
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
 #if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
         Index_type count = 0;
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         #pragma omp parallel for reduction(inscan, +:count)
         for (Index_type i = ibegin; i < iend+1; ++i ) {
           Index_type inc = counts[i];
@@ -59,6 +62,7 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
           #pragma omp scan exclusive(count)
           count += inc;
         }
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 #else
         #pragma omp parallel num_threads(p0)
         {
@@ -92,10 +96,12 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
         }
 #endif
 
+        RP_CALI_MARK_BEGIN((getName() + "_3").c_str());
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           INDEXLIST_3LOOP_MAKE_LIST;
         }
+        RP_CALI_MARK_END((getName() + "_3").c_str());
 
         m_len = counts[iend];
 
@@ -130,13 +136,16 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           indexlist_conditional_lam(i);
         }
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
 #if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
         Index_type count = 0;
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         #pragma omp parallel for reduction(inscan, +:count)
         for (Index_type i = ibegin; i < iend+1; ++i ) {
           Index_type inc = counts[i];
@@ -144,6 +153,7 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
           #pragma omp scan exclusive(count)
           count += inc;
         }
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 #else
         #pragma omp parallel num_threads(p0)
         {
@@ -177,10 +187,12 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
         }
 #endif
 
+        RP_CALI_MARK_BEGIN((getName() + "_3").c_str());
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           indexlist_make_list_lam(i);
         }
+        RP_CALI_MARK_END((getName() + "_3").c_str());
 
         m_len = counts[iend];
 
@@ -202,15 +214,20 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         });
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         RAJA::exclusive_scan_inplace<RAJA::omp_parallel_for_exec>(
             RAJA::make_span(counts+ibegin, iend+1-ibegin));
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_3").c_str());
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
@@ -218,6 +235,7 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
             list[counts[i]] = i;
           }
         });
+        RP_CALI_MARK_END((getName() + "_3").c_str());
 
         m_len = counts[iend];
 

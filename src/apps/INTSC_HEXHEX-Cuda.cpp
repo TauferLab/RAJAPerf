@@ -99,16 +99,20 @@ void INTSC_HEXHEX::runCudaVariantImpl(VariantID vid)
       const Size_type grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr Size_type shmem = 0;
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       RPlaunchCudaKernel( (intsc_hexhex<block_size>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           m_dsubz, m_tsubz,
                           n_subz_intsc, m_vv_int ) ;
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       RPlaunchCudaKernel( (intsc_hexhex_fixup_vv_64to72<block_size>),
                           gsize_fixup, block_size,
                           shmem, res.get_stream(),
                           m_vv_int, n_subz_intsc, m_vv_out ) ;
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
 
     }
@@ -141,19 +145,23 @@ void INTSC_HEXHEX::runCudaVariantImpl(VariantID vid)
 
       constexpr Size_type shmem = 0;
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       RPlaunchCudaKernel( (lambda_cuda_forall<block_size,
                            decltype(intsc_hexhex_lambda)>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           ibegin, iend,
                           intsc_hexhex_lambda );
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       RPlaunchCudaKernel( (lambda_cuda_forall<block_size,
                            decltype(intsc_hexhex_fixup_lambda)>),
                           gsize_fixup, block_size,
                           shmem, res.get_stream(),
                           ibegin, iend_fixup,
                           intsc_hexhex_fixup_lambda );
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
 
     }
@@ -165,6 +173,7 @@ void INTSC_HEXHEX::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i)
           {
@@ -179,13 +188,16 @@ void INTSC_HEXHEX::runCudaVariantImpl(VariantID vid)
             INTSC_HEXHEX_BODY;
           }
       ) ;
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend_fixup), [=] __device__ (Index_type i)
           {
             FIXUP_VV_BODY ;
           }
       ) ;
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
     }
     stopTimer();

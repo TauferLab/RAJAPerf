@@ -42,15 +42,19 @@ void GEN_LIN_RECUR::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         #pragma omp parallel for
         for (Index_type k = 0; k < N; ++k ) {
           GEN_LIN_RECUR_BODY1;
         }
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         #pragma omp parallel for
         for (Index_type i = 1; i < N+1; ++i ) {
           GEN_LIN_RECUR_BODY2;
         }
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
       }
       stopTimer();
@@ -64,15 +68,19 @@ void GEN_LIN_RECUR::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         #pragma omp parallel for
         for (Index_type k = 0; k < N; ++k ) {
           genlinrecur_lam1(k);
         }
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         #pragma omp parallel for
         for (Index_type i = 1; i < N+1; ++i ) {
           genlinrecur_lam2(i);
         }
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
       }
       stopTimer();
@@ -88,11 +96,15 @@ void GEN_LIN_RECUR::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(0, N), genlinrecur_lam1);
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(1, N+1), genlinrecur_lam2);
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
       }
       stopTimer();

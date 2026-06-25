@@ -40,17 +40,21 @@ void GEN_LIN_RECUR::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       #pragma omp target is_device_ptr(b5, stb5, sa, sb) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type k = 0; k < N; ++k ) {
         GEN_LIN_RECUR_BODY1;
       }
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       #pragma omp target is_device_ptr(b5, stb5, sa, sb) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 1; i < N+1; ++i ) {
         GEN_LIN_RECUR_BODY2;
       }
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
     }
     stopTimer();
@@ -63,15 +67,19 @@ void GEN_LIN_RECUR::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
         RAJA::RangeSegment(0, N), [=] (Index_type k) {
         GEN_LIN_RECUR_BODY1;
       });
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
         RAJA::RangeSegment(1, N+1), [=] (Index_type i) {
         GEN_LIN_RECUR_BODY2;
       });
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
     }
     stopTimer();

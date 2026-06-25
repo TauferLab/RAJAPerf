@@ -39,6 +39,7 @@ void POLYBENCH_MVT::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       #pragma omp target is_device_ptr(x1,A,y1) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 0; i < N; ++i ) {
@@ -48,7 +49,9 @@ void POLYBENCH_MVT::runOpenMPTargetVariant(VariantID vid)
         }
         POLYBENCH_MVT_BODY3;
       }
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       #pragma omp target is_device_ptr(x2,A,y2) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 0; i < N; ++i ) {
@@ -58,6 +61,7 @@ void POLYBENCH_MVT::runOpenMPTargetVariant(VariantID vid)
         }
         POLYBENCH_MVT_BODY6;
       }
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
     }
     stopTimer();
@@ -85,6 +89,7 @@ void POLYBENCH_MVT::runOpenMPTargetVariant(VariantID vid)
 
       RAJA::region<RAJA::seq_region>( [=]() {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
@@ -102,7 +107,9 @@ void POLYBENCH_MVT::runOpenMPTargetVariant(VariantID vid)
           }
 
         );
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
@@ -120,6 +127,7 @@ void POLYBENCH_MVT::runOpenMPTargetVariant(VariantID vid)
           }
 
         );
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
       }); // end sequential region (for single-source code)
 

@@ -109,10 +109,12 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       RPlaunchHipKernel( (indexlist_conditional<block_size>),
                          grid_size, block_size,
                          shmem, stream,
                          x, counts, iend );
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
 #if defined(__HIPCC__)
       CAMP_HIP_API_INVOKE_AND_CHECK(::rocprim::exclusive_scan,
@@ -124,6 +126,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
           binary_op,
           stream);
 #elif defined(__CUDACC__)
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       CAMP_CUDA_API_INVOKE_AND_CHECK(::cub::DeviceScan::ExclusiveScan,
           d_temp_storage, temp_storage_bytes,
           counts+ibegin,
@@ -132,12 +135,15 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
           init_val,
           scan_size,
           stream);
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 #endif
 
+      RP_CALI_MARK_BEGIN((getName() + "_3").c_str());
       RPlaunchHipKernel( (indexlist_make_list<block_size>),
                          grid_size, block_size,
                          shmem, stream,
                          list, counts, len, iend );
+      RP_CALI_MARK_END((getName() + "_3").c_str());
 
       CAMP_HIP_API_INVOKE_AND_CHECK( hipStreamSynchronize, stream );
       m_len = *len;
@@ -161,17 +167,22 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
         [=] __device__ (Index_type i) {
         counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
       });
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       RAJA::exclusive_scan_inplace<
         RAJA::hip_exec<block_size, true /*async*/> >(
           res,
           RAJA::make_span(counts+ibegin, iend+1-ibegin) );
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_3").c_str());
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
         [=] __device__ (Index_type i) {
@@ -182,6 +193,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
           *len = counts[i+1];
         }
       });
+      RP_CALI_MARK_END((getName() + "_3").c_str());
 
       res.wait();
       m_len = *len;

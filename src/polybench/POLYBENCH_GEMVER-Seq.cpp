@@ -184,13 +184,16 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         RAJA::kernel_resource<EXEC_POL1>(
           RAJA::make_tuple(RAJA::RangeSegment{0, n},
                            RAJA::RangeSegment{0, n}),
           res,
           poly_gemver_lam1
         );
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         RAJA::kernel_param_resource<EXEC_POL24>(
           RAJA::make_tuple(RAJA::RangeSegment{0, n},
                            RAJA::RangeSegment{0, n}),
@@ -201,12 +204,16 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
           poly_gemver_lam3,
           poly_gemver_lam4
         );
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_3").c_str());
         RAJA::forall<EXEC_POL3>(res, 
           RAJA::RangeSegment{0, n},
           poly_gemver_lam5
         );
+        RP_CALI_MARK_END((getName() + "_3").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_4").c_str());
         RAJA::kernel_param_resource<EXEC_POL24>(
           RAJA::make_tuple(RAJA::RangeSegment{0, n},
                            RAJA::RangeSegment{0, n}),
@@ -218,6 +225,7 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
           poly_gemver_lam8
 
         );
+        RP_CALI_MARK_END((getName() + "_4").c_str());
 
       }
       stopTimer();

@@ -36,6 +36,7 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         #pragma omp parallel for collapse(2)
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
@@ -44,7 +45,9 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
             }
           }
         }
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         #pragma omp parallel for collapse(2)
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
@@ -53,6 +56,7 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
             }
           }
         }
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
       }
       stopTimer();
@@ -75,6 +79,7 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         #pragma omp parallel for collapse(2)
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
@@ -83,7 +88,9 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
             }
           }
         }
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         #pragma omp parallel for collapse(2)
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
@@ -92,6 +99,7 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
             }
           }
         }
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
       }
       stopTimer();
@@ -119,6 +127,7 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                            RAJA::RangeSegment{1, N-1},
@@ -128,7 +137,9 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
             POLYBENCH_HEAT_3D_BODY1_RAJA;
           }
         );
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                            RAJA::RangeSegment{1, N-1},
@@ -138,6 +149,7 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
             POLYBENCH_HEAT_3D_BODY2_RAJA;
           }
         );
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
       }
       stopTimer();

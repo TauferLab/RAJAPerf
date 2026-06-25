@@ -89,11 +89,15 @@ void PRESSURE::runSeqVariant(VariantID vid)
 
         RAJA::region<RAJA::seq_region>( [=]() {
 
+          RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
           RAJA::forall<RAJA::seq_exec>( res,
             RAJA::RangeSegment(ibegin, iend), pressure_lam1);
+          RP_CALI_MARK_END((getName() + "_1").c_str());
 
+          RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
           RAJA::forall<RAJA::seq_exec>( res,
             RAJA::RangeSegment(ibegin, iend), pressure_lam2);
+          RP_CALI_MARK_END((getName() + "_2").c_str());
 
         }); // end sequential region (for single-source code)
 

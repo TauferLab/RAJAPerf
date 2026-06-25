@@ -42,17 +42,21 @@ void PRESSURE::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       #pragma omp target is_device_ptr(compression, bvc) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         PRESSURE_BODY1;
       }
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       #pragma omp target is_device_ptr(bvc, p_new, e_old, vnewc) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         PRESSURE_BODY2;
       }
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
     }
     stopTimer();
@@ -67,15 +71,19 @@ void PRESSURE::runOpenMPTargetVariant(VariantID vid)
 
       RAJA::region<RAJA::seq_region>( [=]() {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           PRESSURE_BODY1;
         });
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           PRESSURE_BODY2;
         });
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
       }); // end sequential region (for single-source code)
 

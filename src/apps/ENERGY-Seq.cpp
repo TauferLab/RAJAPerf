@@ -133,23 +133,35 @@ void ENERGY::runSeqVariant(VariantID vid)
 
         RAJA::region<RAJA::seq_region>( [=]() {
 
+          RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
           RAJA::forall<RAJA::seq_exec>( res,
             RAJA::RangeSegment(ibegin, iend), energy_lam1);
+          RP_CALI_MARK_END((getName() + "_1").c_str());
 
+          RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
           RAJA::forall<RAJA::seq_exec>( res,
             RAJA::RangeSegment(ibegin, iend), energy_lam2);
+          RP_CALI_MARK_END((getName() + "_2").c_str());
 
+          RP_CALI_MARK_BEGIN((getName() + "_3").c_str());
           RAJA::forall<RAJA::seq_exec>( res,
             RAJA::RangeSegment(ibegin, iend), energy_lam3);
+          RP_CALI_MARK_END((getName() + "_3").c_str());
 
+          RP_CALI_MARK_BEGIN((getName() + "_4").c_str());
           RAJA::forall<RAJA::seq_exec>( res,
             RAJA::RangeSegment(ibegin, iend), energy_lam4);
+          RP_CALI_MARK_END((getName() + "_4").c_str());
 
+          RP_CALI_MARK_BEGIN((getName() + "_5").c_str());
           RAJA::forall<RAJA::seq_exec>( res,
             RAJA::RangeSegment(ibegin, iend), energy_lam5);
+          RP_CALI_MARK_END((getName() + "_5").c_str());
 
+          RP_CALI_MARK_BEGIN((getName() + "_6").c_str());
           RAJA::forall<RAJA::seq_exec>( res,
             RAJA::RangeSegment(ibegin, iend), energy_lam6);
+          RP_CALI_MARK_END((getName() + "_6").c_str());
 
         }); // end sequential region (for single-source code)
 

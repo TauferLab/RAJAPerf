@@ -248,6 +248,7 @@ void POLYBENCH_3MM::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                            RAJA::RangeSegment{0, nj},
@@ -260,7 +261,9 @@ void POLYBENCH_3MM::runOpenMPVariant(VariantID vid)
           poly_3mm_lam3
 
         );
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, nj},
                            RAJA::RangeSegment{0, nl},
@@ -273,7 +276,9 @@ void POLYBENCH_3MM::runOpenMPVariant(VariantID vid)
           poly_3mm_lam6
 
         );
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_3").c_str());
         RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                            RAJA::RangeSegment{0, nl},
@@ -286,6 +291,7 @@ void POLYBENCH_3MM::runOpenMPVariant(VariantID vid)
           poly_3mm_lam9
 
         );
+        RP_CALI_MARK_END((getName() + "_3").c_str());
 
       }
       stopTimer();

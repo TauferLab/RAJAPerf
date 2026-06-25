@@ -55,6 +55,7 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       qu->submit([&] (sycl::handler& h) { 
 
         h.parallel_for(sycl::nd_range<3>( global_dim, wkgroup_dim),
@@ -69,7 +70,9 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
 
         });
       });
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       qu->submit([&] (sycl::handler& h) { 
         h.parallel_for(sycl::nd_range<3>( global_dim, wkgroup_dim),
                        [=] (sycl::nd_item<3> item) {
@@ -83,7 +86,9 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
 
         });
       });
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_3").c_str());
       qu->submit([&] (sycl::handler& h) { 
         h.parallel_for(sycl::nd_range<3>( global_dim, wkgroup_dim),
                        [=] (sycl::nd_item<3> item) {
@@ -97,6 +102,7 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
 
         });
       });
+      RP_CALI_MARK_END((getName() + "_3").c_str());
 
     }
     stopTimer();
@@ -120,6 +126,7 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
@@ -127,7 +134,9 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
         [=] (Index_type k, Index_type j) {
         HYDRO_2D_BODY1_RAJA;
       });
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
@@ -135,7 +144,9 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
         [=] (Index_type k, Index_type j) {
         HYDRO_2D_BODY2_RAJA;
       });
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_3").c_str());
       RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
@@ -143,6 +154,7 @@ void HYDRO_2D::runSyclVariantImpl(VariantID vid) {
         [=] (Index_type k, Index_type j) {
         HYDRO_2D_BODY3_RAJA;
       });
+      RP_CALI_MARK_END((getName() + "_3").c_str());
 
     }
     stopTimer();

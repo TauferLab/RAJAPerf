@@ -64,11 +64,13 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
         ENERGY_BODY3;
       }
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       #pragma omp target is_device_ptr(e_new, work) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY4;
       }
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
       #pragma omp target is_device_ptr(delvc, pbvc, e_new, vnewc, \
                                        bvc, p_new, ql_old, qq_old, \
@@ -99,35 +101,47 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
 
       RAJA::region<RAJA::seq_region>( [=]() {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ENERGY_BODY1;
         });
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ENERGY_BODY2;
         });
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_3").c_str());
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ENERGY_BODY3;
         });
+        RP_CALI_MARK_END((getName() + "_3").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_4").c_str());
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ENERGY_BODY4;
         });
+        RP_CALI_MARK_END((getName() + "_4").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_5").c_str());
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ENERGY_BODY5;
         });
+        RP_CALI_MARK_END((getName() + "_5").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_6").c_str());
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ENERGY_BODY6;
         });
+        RP_CALI_MARK_END((getName() + "_6").c_str());
 
       }); // end sequential region (for single-source code)
 

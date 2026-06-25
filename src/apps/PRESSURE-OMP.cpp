@@ -102,11 +102,15 @@ void PRESSURE::runOpenMPVariant(VariantID vid)
 
         RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
+          RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
           RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
             RAJA::RangeSegment(ibegin, iend), pressure_lam1);
+          RP_CALI_MARK_END((getName() + "_1").c_str());
 
+          RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
           RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
             RAJA::RangeSegment(ibegin, iend), pressure_lam2);
+          RP_CALI_MARK_END((getName() + "_2").c_str());
 
         }); // end omp parallel region
 

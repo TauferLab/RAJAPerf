@@ -42,6 +42,7 @@ void POLYBENCH_ADI::runSyclVariantImpl(VariantID vid)
 
       const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(n-2, work_group_size);
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       qu->submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                        [=] (sycl::nd_item<1> item) {
@@ -61,7 +62,9 @@ void POLYBENCH_ADI::runSyclVariantImpl(VariantID vid)
 
         });
       });
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       qu->submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                        [=] (sycl::nd_item<1> item) {
@@ -81,6 +84,7 @@ void POLYBENCH_ADI::runSyclVariantImpl(VariantID vid)
 
         });
       });
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
     }
     stopTimer();
@@ -109,6 +113,7 @@ void POLYBENCH_ADI::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       RAJA::kernel_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                          RAJA::RangeSegment{1, n-1},
@@ -128,7 +133,9 @@ void POLYBENCH_ADI::runSyclVariantImpl(VariantID vid)
           POLYBENCH_ADI_BODY5_RAJA;
         }
       );
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       RAJA::kernel_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                          RAJA::RangeSegment{1, n-1},
@@ -148,6 +155,7 @@ void POLYBENCH_ADI::runSyclVariantImpl(VariantID vid)
           POLYBENCH_ADI_BODY9_RAJA;
         }
       );
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
     } // run_reps
     stopTimer();

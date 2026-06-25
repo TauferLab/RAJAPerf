@@ -71,12 +71,15 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       RPlaunchCudaKernel( (pressurecalc1<block_size>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           bvc, compression, cls,
                           iend );
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       RPlaunchCudaKernel( (pressurecalc2<block_size>),
                           grid_size, block_size,
                           shmem, res.get_stream(),
@@ -84,6 +87,7 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
                           vnewc,
                           p_cut, eosvmax, pmin,
                           iend );
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
     }
     stopTimer();
@@ -102,15 +106,19 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
       RAJA::region<RAJA::seq_region>( [=]() {
 #endif
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           PRESSURE_BODY1;
         });
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           PRESSURE_BODY2;
         });
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
 #if CUDART_VERSION >= 9000
       }); // end sequential region (for single-source code)

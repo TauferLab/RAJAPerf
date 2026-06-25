@@ -85,11 +85,15 @@ void GEN_LIN_RECUR::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(0, N), genlinrecur_lam1);
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(1, N+1), genlinrecur_lam2);
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
       }
       stopTimer();

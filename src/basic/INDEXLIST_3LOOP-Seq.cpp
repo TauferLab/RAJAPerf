@@ -115,15 +115,20 @@ void INDEXLIST_3LOOP::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         });
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         RAJA::exclusive_scan_inplace<RAJA::seq_exec>( res,
             RAJA::make_span(counts+ibegin, iend+1-ibegin));
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_3").c_str());
         RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
@@ -131,6 +136,7 @@ void INDEXLIST_3LOOP::runSeqVariant(VariantID vid)
             list[counts[i]] = i;
           }
         });
+        RP_CALI_MARK_END((getName() + "_3").c_str());
 
         m_len = counts[iend];
 

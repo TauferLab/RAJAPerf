@@ -110,6 +110,7 @@ void POLYBENCH_JACOBI_2D::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                            RAJA::RangeSegment{1, N-1}),
@@ -123,6 +124,7 @@ void POLYBENCH_JACOBI_2D::runSeqVariant(VariantID vid)
           res,
           poly_jacobi2d_lam2
         );
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
       }
       stopTimer();

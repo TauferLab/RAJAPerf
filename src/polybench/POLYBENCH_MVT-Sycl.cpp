@@ -43,6 +43,7 @@ void POLYBENCH_MVT::runSyclVariantImpl(VariantID vid)
 
       const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(N, work_group_size);
 
+      RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
       qu->submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                        [=] (sycl::nd_item<1> item) {
@@ -59,7 +60,9 @@ void POLYBENCH_MVT::runSyclVariantImpl(VariantID vid)
 
         });
       });
+      RP_CALI_MARK_END((getName() + "_1").c_str());
 
+      RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
       qu->submit([&] (sycl::handler& h) { 
         h.parallel_for(sycl::nd_range<1> (global_size, work_group_size),
                        [=] (sycl::nd_item<1> item) { 
@@ -76,6 +79,7 @@ void POLYBENCH_MVT::runSyclVariantImpl(VariantID vid)
 
         });
       });
+      RP_CALI_MARK_END((getName() + "_2").c_str());
 
     }
     stopTimer();
@@ -103,6 +107,7 @@ void POLYBENCH_MVT::runSyclVariantImpl(VariantID vid)
 
       RAJA::region<RAJA::seq_region>( [=]() {
 
+        RP_CALI_MARK_BEGIN((getName() + "_1").c_str());
         RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
@@ -120,7 +125,9 @@ void POLYBENCH_MVT::runSyclVariantImpl(VariantID vid)
           }
 
         );
+        RP_CALI_MARK_END((getName() + "_1").c_str());
 
+        RP_CALI_MARK_BEGIN((getName() + "_2").c_str());
         RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
@@ -138,6 +145,7 @@ void POLYBENCH_MVT::runSyclVariantImpl(VariantID vid)
           }
 
         );
+        RP_CALI_MARK_END((getName() + "_2").c_str());
 
       }); // end sequential region (for single-source code)
 
