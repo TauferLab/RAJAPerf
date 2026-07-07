@@ -90,19 +90,15 @@ void POLYBENCH_JACOBI_1D::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_1D_1));
       RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{1, N-1},
-        [=] __device__ (Index_type i) {
+        RAJA::Name("POLYBENCH_JACOBI_1D_1"), [=] __device__ (Index_type i) {
           POLYBENCH_JACOBI_1D_BODY1;
       });
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_JACOBI_1D_1));
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_1D_2));
       RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{1, N-1},
-        [=] __device__ (Index_type i) {
+        RAJA::Name("POLYBENCH_JACOBI_1D_2"), [=] __device__ (Index_type i) {
           POLYBENCH_JACOBI_1D_BODY2;
       });
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_JACOBI_1D_2));
 
     }
     stopTimer();

@@ -145,13 +145,11 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
       );
       RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_GEMVER_2));
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_GEMVER_3));
       RAJA::forall<EXEC_POL3> (res, RAJA::RangeSegment{0, n},
-        [=] (Index_type i) {
+        RAJA::Name("POLYBENCH_GEMVER_3"), [=] (Index_type i) {
           POLYBENCH_GEMVER_BODY5_RAJA;
         }
       );
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_GEMVER_3));
 
       RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_GEMVER_4));
       RAJA::kernel_param_resource<EXEC_POL24>(

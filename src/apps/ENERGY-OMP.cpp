@@ -152,35 +152,23 @@ void ENERGY::runOpenMPVariant(VariantID vid)
 
         RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
-          RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_1));
           RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
-            RAJA::RangeSegment(ibegin, iend), energy_lam1);
-          RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_1));
+            RAJA::RangeSegment(ibegin, iend), RAJA::Name("ENERGY_1"), energy_lam1);
 
-          RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_2));
           RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
-            RAJA::RangeSegment(ibegin, iend), energy_lam2);
-          RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_2));
+            RAJA::RangeSegment(ibegin, iend), RAJA::Name("ENERGY_2"), energy_lam2);
 
-          RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_3));
           RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
-            RAJA::RangeSegment(ibegin, iend), energy_lam3);
-          RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_3));
+            RAJA::RangeSegment(ibegin, iend), RAJA::Name("ENERGY_3"), energy_lam3);
 
-          RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_4));
           RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
-            RAJA::RangeSegment(ibegin, iend), energy_lam4);
-          RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_4));
+            RAJA::RangeSegment(ibegin, iend), RAJA::Name("ENERGY_4"), energy_lam4);
 
-          RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_5));
           RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
-            RAJA::RangeSegment(ibegin, iend), energy_lam5);
-          RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_5));
+            RAJA::RangeSegment(ibegin, iend), RAJA::Name("ENERGY_5"), energy_lam5);
 
-          RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_6));
           RAJA::forall< RAJA::omp_for_nowait_static_exec< > >( res,
-            RAJA::RangeSegment(ibegin, iend), energy_lam6);
-          RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_6));
+            RAJA::RangeSegment(ibegin, iend), RAJA::Name("ENERGY_6"), energy_lam6);
 
         }); // end omp parallel region
 

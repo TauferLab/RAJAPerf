@@ -71,19 +71,15 @@ void PRESSURE::runOpenMPTargetVariant(VariantID vid)
 
       RAJA::region<RAJA::seq_region>( [=]() {
 
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(PRESSURE_1));
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+          RAJA::RangeSegment(ibegin, iend), RAJA::Name("PRESSURE_1"), [=](Index_type i) {
           PRESSURE_BODY1;
         });
-        RP_CALI_MARK_END(RP_CALI_REGION(PRESSURE_1));
 
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(PRESSURE_2));
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+          RAJA::RangeSegment(ibegin, iend), RAJA::Name("PRESSURE_2"), [=](Index_type i) {
           PRESSURE_BODY2;
         });
-        RP_CALI_MARK_END(RP_CALI_REGION(PRESSURE_2));
 
       }); // end sequential region (for single-source code)
 
