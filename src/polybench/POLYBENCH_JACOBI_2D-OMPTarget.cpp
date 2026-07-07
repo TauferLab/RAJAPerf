@@ -84,7 +84,9 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid)
           POLYBENCH_JACOBI_2D_BODY1_RAJA;
         }
       );
+      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_JACOBI_2D_1));
 
+      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_2D_2));
       RAJA::kernel_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                          RAJA::RangeSegment{1, N-1}),
@@ -93,7 +95,7 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid)
           POLYBENCH_JACOBI_2D_BODY2_RAJA;
         }
       );
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_JACOBI_2D_1));
+      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_JACOBI_2D_2));
 
     }
     stopTimer();
