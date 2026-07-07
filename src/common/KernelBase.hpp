@@ -69,8 +69,8 @@
       RAJA::util::SetRAJACaliperProfiling(false); \
     }
 
-#define RP_CALI_MARK_BEGIN(name) if (isCaliperTiming()) { CALI_MARK_BEGIN(name); }
-#define RP_CALI_MARK_END(name) if (isCaliperTiming()) { CALI_MARK_END(name); }
+#define RP_CALI_MARK_BEGIN(name) beginSubkernelCaliperRegion(name)
+#define RP_CALI_MARK_END(name) endSubkernelCaliperRegion()
 
 #else
 
@@ -659,6 +659,18 @@ public:
     RAJA::util::SetRAJACaliperProfiling(false);
   }
   bool isCaliperTiming() const { return doCaliperTiming; }
+  void beginSubkernelCaliperRegion(const char* name)
+  {
+    if (isCaliperTiming()) {
+      cali_begin_string(Subkernel_attr, name);
+    }
+  }
+  void endSubkernelCaliperRegion()
+  {
+    if (isCaliperTiming()) {
+      cali_end(Subkernel_attr);
+    }
+  }
   void doOnceCaliMetaBegin(VariantID vid, size_t tune_idx);
   void doOnceCaliMetaEnd(VariantID vid, size_t tune_idx);
   static void setCaliperMgrVariantTuning(VariantID vid,
@@ -812,6 +824,7 @@ private:
   cali_id_t Complexity_attr;
   cali_id_t MaxPerfectLoopDimensions_attr;
   cali_id_t ProblemDimensionality_attr;
+  cali_id_t Subkernel_attr;
 
 
   // we need a Caliper Manager object per variant

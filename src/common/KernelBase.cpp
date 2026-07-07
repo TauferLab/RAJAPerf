@@ -117,6 +117,8 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
                                            CALI_ATTR_ASVALUE |
                                            CALI_ATTR_AGGREGATABLE |
                                            CALI_ATTR_SKIP_EVENTS);
+  Subkernel_attr = cali_create_attribute("subkernel", CALI_TYPE_STRING,
+                                         CALI_ATTR_NESTED);
 #endif
 }
 
