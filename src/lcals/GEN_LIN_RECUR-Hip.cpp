@@ -101,15 +101,19 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+       RP_CALI_MARK_BEGIN(RP_CALI_REGION(GEN_LIN_RECUR_1));
        RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
-         RAJA::RangeSegment(0, N), RAJA::Name("GEN_LIN_RECUR_1"), [=] __device__ (Index_type k) {
+         RAJA::RangeSegment(0, N), [=] __device__ (Index_type k) {
          GEN_LIN_RECUR_BODY1;
        });
+       RP_CALI_MARK_END(RP_CALI_REGION(GEN_LIN_RECUR_1));
 
+       RP_CALI_MARK_BEGIN(RP_CALI_REGION(GEN_LIN_RECUR_2));
        RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
-         RAJA::RangeSegment(1, N+1), RAJA::Name("GEN_LIN_RECUR_2"), [=] __device__ (Index_type i) {
+         RAJA::RangeSegment(1, N+1), [=] __device__ (Index_type i) {
          GEN_LIN_RECUR_BODY2;
        });
+       RP_CALI_MARK_END(RP_CALI_REGION(GEN_LIN_RECUR_2));
 
     }
     stopTimer();

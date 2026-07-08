@@ -214,24 +214,28 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(INDEXLIST_3LOOP_1));
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
-          RAJA::Name("INDEXLIST_3LOOP_1"), [=](Index_type i) {
+          [=](Index_type i) {
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         });
+        RP_CALI_MARK_END(RP_CALI_REGION(INDEXLIST_3LOOP_1));
 
         RP_CALI_MARK_BEGIN(RP_CALI_REGION(INDEXLIST_3LOOP_2));
         RAJA::exclusive_scan_inplace<RAJA::omp_parallel_for_exec>(
             RAJA::make_span(counts+ibegin, iend+1-ibegin));
         RP_CALI_MARK_END(RP_CALI_REGION(INDEXLIST_3LOOP_2));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(INDEXLIST_3LOOP_3));
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
-          RAJA::Name("INDEXLIST_3LOOP_3"), [=](Index_type i) {
+          [=](Index_type i) {
           if (counts[i] != counts[i+1]) {
             list[counts[i]] = i;
           }
         });
+        RP_CALI_MARK_END(RP_CALI_REGION(INDEXLIST_3LOOP_3));
 
         m_len = counts[iend];
 

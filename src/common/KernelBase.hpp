@@ -18,9 +18,6 @@
 
 #include "RAJA/util/Timer.hpp"
 #include "RAJA/util/reduce.hpp"
-#if defined(RAJA_PERFSUITE_USE_CALIPER)
-#include "RAJA/util/CaliperPlugin.hpp"
-#endif
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
 #include <mpi.h>
 #endif
@@ -47,7 +44,6 @@
 
 #define CALI_START \
     if (doCaliperTiming) { \
-      RAJA::util::SetRAJACaliperProfiling(true); \
       std::string kstr = getName(); \
       std::string gstr = getKernelGroupName(kstr); \
       std::string vstr = "RAJAPerf"; \
@@ -66,7 +62,6 @@
       CALI_MARK_END(gstr.c_str()); \
       CALI_MARK_END(vstr.c_str()); \
       doOnceCaliMetaEnd(running_variant,running_tuning); \
-      RAJA::util::SetRAJACaliperProfiling(false); \
     }
 
 #define RP_CALI_MARK_BEGIN(name) beginSubkernelCaliperRegion(name)
@@ -649,15 +644,8 @@ public:
   virtual void tearDown(VariantID vid, size_t tune_idx) = 0;
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
-  void caliperOn()
-  {
-    doCaliperTiming = true;
-  }
-  void caliperOff()
-  {
-    doCaliperTiming = false;
-    RAJA::util::SetRAJACaliperProfiling(false);
-  }
+  void caliperOn() { doCaliperTiming = true; }
+  void caliperOff() { doCaliperTiming = false; }
   bool isCaliperTiming() const { return doCaliperTiming; }
   void beginSubkernelCaliperRegion(const char* name)
   {

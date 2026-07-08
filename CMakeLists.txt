@@ -160,18 +160,6 @@ else()
   message(STATUS "Using default gpu items per thread(s)")
 endif()
 
-#
-# Are we using Caliper
-#
-set(RAJA_PERFSUITE_USE_CALIPER off CACHE BOOL "")
-if (RAJA_PERFSUITE_USE_CALIPER)
-  find_package(caliper REQUIRED)
-  set(RAJA_ENABLE_CALIPER ON CACHE BOOL
-      "Enable RAJA Caliper plugin when RAJAPerf Caliper is enabled" FORCE)
-  set(RAJA_ENABLE_RUNTIME_PLUGINS ON CACHE BOOL
-      "Enable RAJA plugin support when RAJAPerf Caliper is enabled" FORCE)
-endif()
-
 # exclude RAJA make targets from top-level build...
 add_subdirectory(tpl/RAJA)
 
@@ -227,6 +215,7 @@ endif()
 #
 # Are we using Caliper
 #
+set(RAJA_PERFSUITE_USE_CALIPER off CACHE BOOL "")
 if (RAJA_PERFSUITE_USE_CALIPER)
   find_package(caliper REQUIRED)
   list(APPEND RAJA_PERFSUITE_DEPENDS caliper)

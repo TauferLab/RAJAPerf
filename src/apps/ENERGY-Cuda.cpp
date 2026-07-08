@@ -214,35 +214,47 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
       RAJA::region<RAJA::seq_region>( [=]() {
 #endif
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_1));
         RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
-          RAJA::RangeSegment(ibegin, iend), RAJA::Name("ENERGY_1"), [=] __device__ (Index_type i) {
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY1;
         });
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_1));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_2));
         RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
-          RAJA::RangeSegment(ibegin, iend), RAJA::Name("ENERGY_2"), [=] __device__ (Index_type i) {
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY2;
         });
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_2));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_3));
         RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
-          RAJA::RangeSegment(ibegin, iend), RAJA::Name("ENERGY_3"), [=] __device__ (Index_type i) {
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY3;
         });
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_3));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_4));
         RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
-          RAJA::RangeSegment(ibegin, iend), RAJA::Name("ENERGY_4"), [=] __device__ (Index_type i) {
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY4;
         });
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_4));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_5));
         RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
-          RAJA::RangeSegment(ibegin, iend), RAJA::Name("ENERGY_5"), [=] __device__ (Index_type i) {
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY5;
         });
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_5));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_6));
         RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
-          RAJA::RangeSegment(ibegin, iend), RAJA::Name("ENERGY_6"), [=] __device__ (Index_type i) {
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY6;
         });
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_6));
 
 #if CUDART_VERSION >= 9000
       }); // end sequential region (for single-source code)

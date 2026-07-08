@@ -101,10 +101,12 @@ void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_FDTD_2D_1));
       RAJA::forall<EXEC_POL1>( res, RAJA::RangeSegment(0, ny),
-       RAJA::Name("POLYBENCH_FDTD_2D_1"), [=] (Index_type j) {
+       [=] (Index_type j) {
          POLYBENCH_FDTD_2D_BODY1_RAJA;
       });
+      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_FDTD_2D_1));
 
       RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_FDTD_2D_2));
       RAJA::kernel_resource<EXEC_POL234>(

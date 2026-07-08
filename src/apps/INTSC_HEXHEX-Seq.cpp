@@ -92,10 +92,14 @@ void INTSC_HEXHEX::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(INTSC_HEXHEX_1));
         RAJA::forall<RAJA::seq_exec>( res,
-          RAJA::RangeSegment(ibegin, iend), RAJA::Name("INTSC_HEXHEX_1"), intsc_hexhex_lam);
+          RAJA::RangeSegment(ibegin, iend), intsc_hexhex_lam);
+        RP_CALI_MARK_END(RP_CALI_REGION(INTSC_HEXHEX_1));
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(INTSC_HEXHEX_2));
         RAJA::forall<RAJA::seq_exec>( res,
-          RAJA::RangeSegment(ibegin, n_szpairs), RAJA::Name("INTSC_HEXHEX_2"), fixup_vv_lam);
+          RAJA::RangeSegment(ibegin, n_szpairs), fixup_vv_lam);
+        RP_CALI_MARK_END(RP_CALI_REGION(INTSC_HEXHEX_2));
 
       }
       stopTimer();

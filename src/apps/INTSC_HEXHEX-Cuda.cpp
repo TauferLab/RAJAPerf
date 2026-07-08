@@ -173,8 +173,9 @@ void INTSC_HEXHEX::runCudaVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_MARK_BEGIN(RP_CALI_REGION(INTSC_HEXHEX_1));
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
-        RAJA::RangeSegment(ibegin, iend), RAJA::Name("INTSC_HEXHEX_1"), [=] __device__ (Index_type i)
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i)
           {
             RAJA_TEAM_SHARED Real_type vv_reduce[len_vv_reduce] ;
 
@@ -187,13 +188,16 @@ void INTSC_HEXHEX::runCudaVariantImpl(VariantID vid)
             INTSC_HEXHEX_BODY;
           }
       ) ;
+      RP_CALI_MARK_END(RP_CALI_REGION(INTSC_HEXHEX_1));
 
+      RP_CALI_MARK_BEGIN(RP_CALI_REGION(INTSC_HEXHEX_2));
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
-        RAJA::RangeSegment(ibegin, iend_fixup), RAJA::Name("INTSC_HEXHEX_2"), [=] __device__ (Index_type i)
+        RAJA::RangeSegment(ibegin, iend_fixup), [=] __device__ (Index_type i)
           {
             FIXUP_VV_BODY ;
           }
       ) ;
+      RP_CALI_MARK_END(RP_CALI_REGION(INTSC_HEXHEX_2));
 
     }
     stopTimer();
