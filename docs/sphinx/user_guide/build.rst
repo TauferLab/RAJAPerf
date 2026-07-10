@@ -277,6 +277,13 @@ Caliper *annotation* uses the following tree structure::
   RAJAPerf
     Group
       Kernel
+        Subkernel
+
+The ``Subkernel`` level appears for kernels that contain multiple meaningful
+loop bodies or kernel launches. Kernels with only one launch per repetition are
+unchanged. Subkernel regions are intended to separate work within a kernel for
+Caliper analysis; they do not add synchronization around asynchronous GPU
+kernels.
 
 | Build against these Caliper versions
 |

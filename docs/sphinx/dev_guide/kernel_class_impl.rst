@@ -286,6 +286,21 @@ A few details are worth noting:
     compilers from optimizing certain loop execution operations. The syntax
     inside the macro definition quiets compiler warnings when the code is 
     compiled using the C++20 standard.
+  * Kernels that execute multiple meaningful loop bodies or launch multiple
+    kernels per repetition should mark each subkernel with
+    ``RP_CALI_MARK_BEGIN(RP_CALI_REGION(<name>))`` and
+    ``RP_CALI_MARK_END(RP_CALI_REGION(<name>))``. These macros add the Caliper
+    ``subkernel`` attribute when Caliper support is enabled and compile away
+    otherwise. Kernels with only one launch per repetition do not need a
+    subkernel region.
+  * Name fixed-count subkernels by appending a one-based numeric suffix to the
+    kernel name, for example ``POLYBENCH_JACOBI_1D_1`` and
+    ``POLYBENCH_JACOBI_1D_2``. For a variable number of launches, append
+    ``_k`` instead, for example ``HALO_PACKING_pack_k`` or
+    ``HALO_EXCHANGE_unpack_k``.
+  * Subkernel annotations around asynchronous GPU launches should not add
+    synchronization. GPU profiling should use CUDA or HIP events to measure GPU
+    time.
 
 All kernel source files follow a similar organization and implementation 
 pattern for each set of back-end execution variants. However, there are some
