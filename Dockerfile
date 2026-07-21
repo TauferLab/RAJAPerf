@@ -68,7 +68,7 @@ RUN sudo apt-get update && \
     sudo ln -s /usr/include/c++/11 /opt/gcc-11/include/c++/11 && \
     sudo ln -s /usr/include/x86_64-linux-gnu/c++/11 /opt/gcc-11/include/x86_64-linux-gnu/c++/11
 
-COPY RAJAPerf /home/raja/workspace
+COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
 RUN cmake -DCMAKE_C_COMPILER=clang-14 \
           -DCMAKE_CXX_COMPILER=clang++-14 \
@@ -98,7 +98,7 @@ RUN sudo apt-get update && \
     sudo ln -s /usr/include/c++/11 /opt/gcc-11/include/c++/11 && \
     sudo ln -s /usr/include/x86_64-linux-gnu/c++/11 /opt/gcc-11/include/x86_64-linux-gnu/c++/11
 
-COPY RAJAPerf /home/raja/workspace
+COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
 RUN cmake -DCMAKE_C_COMPILER=clang-14 \
           -DCMAKE_CXX_COMPILER=clang++-14 \
