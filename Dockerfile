@@ -138,9 +138,8 @@ RUN /bin/bash -c "source /opt/intel/oneapi/setvars.sh 2>&1 && export PATH=/opt/i
 
 FROM ghcr.io/llnl/radiuss:hip-6.4.3-ubuntu-24.04 AS rocm6_4_3_desul
 ENV GTEST_COLOR=1
-ENV HCC_AMDGPU_TARGET=gfx900
 COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
-RUN cmake -DCMAKE_CXX_COMPILER=/opt/rocm-6.4.3/bin/amdclang++ -DROCM_PATH=/opt/rocm-6.4.3 -DCMAKE_BUILD_TYPE=Release -DENABLE_HIP=On -DRAJA_ENABLE_DESUL_ATOMICS=On -DRAJA_ENABLE_WARNINGS_AS_ERRORS=Off -DBLT_CXX_STD=c++20 .. && \
+RUN cmake -DCMAKE_CXX_COMPILER=/opt/rocm-6.4.3/bin/amdclang++ -DROCM_PATH=/opt/rocm-6.4.3 -DGPU_TARGETS=gfx900 -DAMDGPU_TARGETS=gfx900 -DCMAKE_BUILD_TYPE=Release -DENABLE_HIP=On -DRAJA_ENABLE_DESUL_ATOMICS=On -DRAJA_ENABLE_WARNINGS_AS_ERRORS=Off -DBLT_CXX_STD=c++20 .. && \
     make -j 16 &&\
     make clean
