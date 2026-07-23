@@ -53,27 +53,26 @@ RUN cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release -DRAJA_ENABLE_WARN
 # Is there a better way to do this, likely want a new radiuss image so we don't rebuild this as part of the CI.
 FROM ghcr.io/llnl/radiuss:ubuntu-24.04-clang-14 AS clang14_debug
 ENV GTEST_COLOR=1
-ENV OPENSSL_FORCE_FIPS_MODE=0
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install GCC 11 for improved compatibility with Clang 14 and create isolated install directory to prevent CLANG picking up GCC 13 from /usr
+# Install GCC 10 for improved compatibility with Clang 14 and create isolated install directory to prevent CLANG picking up GCC 13 from /usr
 # Note CLANG 14 --gcc-toolchain option searches the directory for latest and Ubuntu install mixes headers/libs together in /usr
 # This is rather ugly
 RUN sudo apt-get update && \
-    sudo apt-get install -y gcc-11 g++-11 && \
+    sudo apt-get install -y gcc-10 g++-10 && \
     sudo apt-get clean && \
     sudo rm -rf /var/lib/apt/lists/* && \
-    sudo mkdir -p /opt/gcc-11/lib/gcc/x86_64-linux-gnu /opt/gcc-11/include/c++ /opt/gcc-11/include/x86_64-linux-gnu/c++ && \
-    sudo ln -s /usr/lib/gcc/x86_64-linux-gnu/11 /opt/gcc-11/lib/gcc/x86_64-linux-gnu/11 && \
-    sudo ln -s /usr/include/c++/11 /opt/gcc-11/include/c++/11 && \
-    sudo ln -s /usr/include/x86_64-linux-gnu/c++/11 /opt/gcc-11/include/x86_64-linux-gnu/c++/11
+    sudo mkdir -p /opt/gcc-10/lib/gcc/x86_64-linux-gnu /opt/gcc-10/include/c++ /opt/gcc-10/include/x86_64-linux-gnu/c++ && \
+    sudo ln -s /usr/lib/gcc/x86_64-linux-gnu/10 /opt/gcc-10/lib/gcc/x86_64-linux-gnu/10 && \
+    sudo ln -s /usr/include/c++/10 /opt/gcc-10/include/c++/10 && \
+    sudo ln -s /usr/include/x86_64-linux-gnu/c++/10 /opt/gcc-10/include/x86_64-linux-gnu/c++/10
 
 COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
 RUN cmake -DCMAKE_C_COMPILER=clang-14 \
           -DCMAKE_CXX_COMPILER=clang++-14 \
-          -DCMAKE_C_FLAGS="--gcc-toolchain=/opt/gcc-11" \
-          -DCMAKE_CXX_FLAGS="--gcc-toolchain=/opt/gcc-11" \
+          -DCMAKE_C_FLAGS="--gcc-toolchain=/opt/gcc-10" \
+          -DCMAKE_CXX_FLAGS="--gcc-toolchain=/opt/gcc-10" \
           -DCMAKE_BUILD_TYPE=Debug  -DENABLE_OPENMP=On -DPERFSUITE_RUN_SHORT_TEST=On -DBLT_CXX_STD=c++20 .. && \
     make -j 16 &&\
     ctest -T test --output-on-failure && \
@@ -83,27 +82,26 @@ RUN cmake -DCMAKE_C_COMPILER=clang-14 \
 # Is there a better way to do this, likely want a new radiuss image so we don't rebuild this as part of the CI.
 FROM ghcr.io/llnl/radiuss:ubuntu-24.04-clang-14 AS clang14_desul
 ENV GTEST_COLOR=1
-ENV OPENSSL_FORCE_FIPS_MODE=0
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install GCC 11 for improved compatibility with Clang 14 and create isolated install directory to prevent CLANG picking up GCC 13 from /usr
+# Install GCC 10 for improved compatibility with Clang 14 and create isolated install directory to prevent CLANG picking up GCC 13 from /usr
 # Note CLANG 14 --gcc-toolchain option searches the directory for latest and Ubuntu install mixes headers/libs together in /usr
 # This is rather ugly
 RUN sudo apt-get update && \
-    sudo apt-get install -y gcc-11 g++-11 && \
+    sudo apt-get install -y gcc-10 g++-10 && \
     sudo apt-get clean && \
     sudo rm -rf /var/lib/apt/lists/* && \
-    sudo mkdir -p /opt/gcc-11/lib/gcc/x86_64-linux-gnu /opt/gcc-11/include/c++ /opt/gcc-11/include/x86_64-linux-gnu/c++ && \
-    sudo ln -s /usr/lib/gcc/x86_64-linux-gnu/11 /opt/gcc-11/lib/gcc/x86_64-linux-gnu/11 && \
-    sudo ln -s /usr/include/c++/11 /opt/gcc-11/include/c++/11 && \
-    sudo ln -s /usr/include/x86_64-linux-gnu/c++/11 /opt/gcc-11/include/x86_64-linux-gnu/c++/11
+    sudo mkdir -p /opt/gcc-10/lib/gcc/x86_64-linux-gnu /opt/gcc-10/include/c++ /opt/gcc-10/include/x86_64-linux-gnu/c++ && \
+    sudo ln -s /usr/lib/gcc/x86_64-linux-gnu/10 /opt/gcc-10/lib/gcc/x86_64-linux-gnu/10 && \
+    sudo ln -s /usr/include/c++/10 /opt/gcc-10/include/c++/10 && \
+    sudo ln -s /usr/include/x86_64-linux-gnu/c++/10 /opt/gcc-10/include/x86_64-linux-gnu/c++/10
 
 COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
 RUN cmake -DCMAKE_C_COMPILER=clang-14 \
           -DCMAKE_CXX_COMPILER=clang++-14 \
-          -DCMAKE_C_FLAGS="--gcc-toolchain=/opt/gcc-11" \
-          -DCMAKE_CXX_FLAGS="--gcc-toolchain=/opt/gcc-11" \
+          -DCMAKE_C_FLAGS="--gcc-toolchain=/opt/gcc-10" \
+          -DCMAKE_CXX_FLAGS="--gcc-toolchain=/opt/gcc-10" \
           -DCMAKE_BUILD_TYPE=Release -DENABLE_OPENMP=On -DRAJA_ENABLE_DESUL_ATOMICS=On -DBLT_CXX_STD=c++20 .. && \
     make -j 16 &&\
     ctest -T test --output-on-failure && \
@@ -140,6 +138,6 @@ FROM ghcr.io/llnl/radiuss:hip-6.4.3-ubuntu-24.04 AS rocm6_4_3_desul
 ENV GTEST_COLOR=1
 COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
-RUN cmake -DCMAKE_CXX_COMPILER=/opt/rocm-6.4.3/bin/amdclang++ -DROCM_PATH=/opt/rocm-6.4.3 -DGPU_TARGETS=gfx900 -DAMDGPU_TARGETS=gfx900 -DCMAKE_BUILD_TYPE=Release -DENABLE_HIP=On -DRAJA_ENABLE_DESUL_ATOMICS=On -DRAJA_ENABLE_WARNINGS_AS_ERRORS=Off -DBLT_CXX_STD=c++20 .. && \
+RUN cmake -DCMAKE_CXX_COMPILER=/opt/rocm-6.4.3/bin/amdclang++ -DROCM_PATH=/opt/rocm-6.4.3 -DGPU_TARGETS=gfx906 -DAMDGPU_TARGETS=gfx906 -DCMAKE_BUILD_TYPE=Release -DENABLE_HIP=On -DRAJA_ENABLE_DESUL_ATOMICS=On -DRAJA_ENABLE_WARNINGS_AS_ERRORS=Off -DBLT_CXX_STD=c++20 .. && \
     make -j 16 &&\
     make clean
