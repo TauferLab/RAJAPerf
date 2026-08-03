@@ -24,7 +24,8 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
 {
   m_ni_default = 1000;
   m_nj_default = 1000;
-  m_nk_default = 1200;
+//   m_nk_default = 1200;
+  m_nk_default = 1000; // Square matrix modification
   setDefaultProblemSize( m_ni_default * m_nj_default );
   setDefaultReps(4);
 
