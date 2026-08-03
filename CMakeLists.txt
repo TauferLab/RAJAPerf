@@ -311,6 +311,20 @@ Kokkos_ENABLE_HIP variable to ON")
   list(APPEND RAJA_PERFSUITE_DEPENDS kokkos)
 endif()
 
+set(RAJAPERF_LLVM_PLUGIN "none" CACHE STRING "LLVM pass plugin to compile with: none, extraction, or association")
+set_property(CACHE RAJAPERF_LLVM_PLUGIN PROPERTY STRINGS none extraction association)
+
+if (RAJAPERF_LLVM_PLUGIN STREQUAL "ON")
+  find_package(CompilerAttributionPlugin CONFIG REQUIRED)
+  add_compile_options(-fpass-plugin=$<TARGET_FILE:CompilerAttributionPlugin::CompilerAttributionPlugin>
+                      "SHELL:-mllvm -pass-remarks=.*"
+                      "SHELL:-mllvm -pass-remarks-analysis=kernel-resource-usage")
+  link_libraries(CompilerAttributionPlugin::runtime)
+  message(STATUS "Using LLVM extraction and caliper association plugin")
+elseif (NOT RAJAPERF_LLVM_PLUGIN STREQUAL "none")
+  message(FATAL_ERROR "RAJAPERF_LLVM_PLUGIN must be merged")
+endif()
+
 add_subdirectory(src)
 
 if (RAJA_PERFSUITE_ENABLE_TESTS)
