@@ -47,15 +47,19 @@ void PRESSURE::runOpenMPVariant(VariantID vid)
         #pragma omp parallel
         {
 
+          RP_CALI_MARK_BEGIN(RP_CALI_REGION(PRESSURE_1));
           #pragma omp for schedule(static) nowait
           for (Index_type i = ibegin; i < iend; ++i ) {
             PRESSURE_BODY1;
           }
+          RP_CALI_MARK_END(RP_CALI_REGION(PRESSURE_1));
 
+          RP_CALI_MARK_BEGIN(RP_CALI_REGION(PRESSURE_2));
           #pragma omp for schedule(static) nowait
           for (Index_type i = ibegin; i < iend; ++i ) {
             PRESSURE_BODY2;
           }
+          RP_CALI_MARK_END(RP_CALI_REGION(PRESSURE_2));
 
         } // end omp parallel region
 
@@ -74,15 +78,19 @@ void PRESSURE::runOpenMPVariant(VariantID vid)
         #pragma omp parallel
         {
 
+          RP_CALI_MARK_BEGIN(RP_CALI_REGION(PRESSURE_1));
           #pragma omp for schedule(static) nowait
           for (Index_type i = ibegin; i < iend; ++i ) {
             pressure_lam1(i);
           }
+          RP_CALI_MARK_END(RP_CALI_REGION(PRESSURE_1));
 
+          RP_CALI_MARK_BEGIN(RP_CALI_REGION(PRESSURE_2));
           #pragma omp for schedule(static) nowait
           for (Index_type i = ibegin; i < iend; ++i ) {
             pressure_lam2(i);
           }
+          RP_CALI_MARK_END(RP_CALI_REGION(PRESSURE_2));
 
         } // end omp parallel region
 

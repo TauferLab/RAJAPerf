@@ -39,6 +39,7 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
         #pragma omp parallel
         {
 
+          RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_MVT_1));
           #pragma omp for schedule(static) nowait
           for (Index_type i = 0; i < N; ++i ) {
             POLYBENCH_MVT_BODY1;
@@ -47,7 +48,9 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
             }
             POLYBENCH_MVT_BODY3;
           }
+          RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_MVT_1));
 
+          RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_MVT_2));
           #pragma omp for schedule(static) nowait
           for (Index_type i = 0; i < N; ++i ) {
             POLYBENCH_MVT_BODY4;
@@ -56,6 +59,7 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
             }
             POLYBENCH_MVT_BODY6;
           }
+          RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_MVT_2));
 
         } // end omp parallel region
 
@@ -91,6 +95,7 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
         #pragma omp parallel
         {
 
+          RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_MVT_1));
           #pragma omp for schedule(static) nowait
           for (Index_type i = 0; i < N; ++i ) {
             POLYBENCH_MVT_BODY1;
@@ -99,7 +104,9 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
             }
             poly_mvt_base_lam3(i, dot);
           }
+          RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_MVT_1));
 
+          RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_MVT_2));
           #pragma omp for schedule(static) nowait
           for (Index_type i = 0; i < N; ++i ) {
             POLYBENCH_MVT_BODY4;
@@ -108,6 +115,7 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
             }
             poly_mvt_base_lam6(i, dot);
           }
+          RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_MVT_2));
 
         } // end omp parallel region
 

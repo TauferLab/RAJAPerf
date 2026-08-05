@@ -56,29 +56,41 @@ void ENERGY::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_1));
         for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_BODY1;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_1));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_2));
         for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_BODY2;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_2));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_3));
         for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_BODY3;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_3));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_4));
         for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_BODY4;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_4));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_5));
         for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_BODY5;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_5));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_6));
         for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_BODY6;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_6));
 
       }
       stopTimer();
@@ -93,29 +105,41 @@ void ENERGY::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_1));
         for (Index_type i = ibegin; i < iend; ++i ) {
           energy_lam1(i);
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_1));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_2));
         for (Index_type i = ibegin; i < iend; ++i ) {
           energy_lam2(i);
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_2));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_3));
         for (Index_type i = ibegin; i < iend; ++i ) {
           energy_lam3(i);
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_3));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_4));
         for (Index_type i = ibegin; i < iend; ++i ) {
           energy_lam4(i);
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_4));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_5));
         for (Index_type i = ibegin; i < iend; ++i ) {
           energy_lam5(i);
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_5));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(ENERGY_6));
         for (Index_type i = ibegin; i < iend; ++i ) {
           energy_lam6(i);
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(ENERGY_6));
 
       }
       stopTimer();

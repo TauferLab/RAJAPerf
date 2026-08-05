@@ -51,12 +51,16 @@ void INTSC_HEXHEX::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(INTSC_HEXHEX_1));
         for (Index_type i = ibegin ; i < iend ; ++i ) {
           INTSC_HEXHEX_SEQ ( i, iend ) ;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(INTSC_HEXHEX_1));
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(INTSC_HEXHEX_2));
         for (Index_type i = ibegin ; i < n_szpairs ; ++i ) {
           FIXUP_VV_BODY ;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(INTSC_HEXHEX_2));
 
       }
       stopTimer();
@@ -71,12 +75,16 @@ void INTSC_HEXHEX::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(INTSC_HEXHEX_1));
         for (Index_type i = ibegin ; i < iend; ++i ) {
           intsc_hexhex_lam( i );
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(INTSC_HEXHEX_1));
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(INTSC_HEXHEX_2));
         for (Index_type i = ibegin ; i < n_szpairs ; ++i ) {
           fixup_vv_lam( i );
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(INTSC_HEXHEX_2));
 
       }
       stopTimer();

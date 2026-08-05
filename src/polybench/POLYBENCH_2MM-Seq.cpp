@@ -33,6 +33,7 @@ void POLYBENCH_2MM::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_1));
         for (Index_type i = 0; i < ni; i++ ) {
           for (Index_type j = 0; j < nj; j++) {
             POLYBENCH_2MM_BODY1;
@@ -42,7 +43,9 @@ void POLYBENCH_2MM::runSeqVariant(VariantID vid)
             POLYBENCH_2MM_BODY3;
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_2MM_1));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_2));
         for (Index_type i = 0; i < ni; i++) {
           for (Index_type l = 0; l < nl; l++) {
             POLYBENCH_2MM_BODY4;
@@ -52,6 +55,7 @@ void POLYBENCH_2MM::runSeqVariant(VariantID vid)
             POLYBENCH_2MM_BODY6;
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_2MM_2));
 
       }
       stopTimer();
@@ -84,6 +88,7 @@ void POLYBENCH_2MM::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_1));
         for (Index_type i = 0; i < ni; i++ ) {
           for(Index_type j = 0; j < nj; j++) {
             POLYBENCH_2MM_BODY1;
@@ -93,7 +98,9 @@ void POLYBENCH_2MM::runSeqVariant(VariantID vid)
             poly_2mm_base_lam3(i, j, dot);
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_2MM_1));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_2));
         for(Index_type i = 0; i < ni; i++) {
           for(Index_type l = 0; l < nl; l++) {
             POLYBENCH_2MM_BODY4;
@@ -103,6 +110,7 @@ void POLYBENCH_2MM::runSeqVariant(VariantID vid)
             poly_2mm_base_lam6(i, l, dot);
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_2MM_2));
 
       }
       stopTimer();

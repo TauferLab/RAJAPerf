@@ -43,6 +43,7 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_1));
 #if defined(USE_OMP_COLLAPSE)
         #pragma omp parallel for collapse(2)
 #else
@@ -57,7 +58,9 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
             POLYBENCH_2MM_BODY3;
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_2MM_1));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_2));
 #if defined(USE_OMP_COLLAPSE)
         #pragma omp parallel for collapse(2)
 #else
@@ -72,6 +75,7 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
             POLYBENCH_2MM_BODY6;
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_2MM_2));
 
       }
       stopTimer();
@@ -102,6 +106,7 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_1));
 #if defined(USE_OMP_COLLAPSE)
         #pragma omp parallel for collapse(2)
 #else
@@ -116,7 +121,9 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
             poly_2mm_base_lam3(i, j, dot);
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_2MM_1));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_2));
 #if defined(USE_OMP_COLLAPSE)
         #pragma omp parallel for collapse(2)
 #else
@@ -131,6 +138,7 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
             poly_2mm_base_lam6(i, l, dot);
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_2MM_2));
 
       }
       stopTimer();

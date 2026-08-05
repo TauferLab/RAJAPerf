@@ -33,24 +33,32 @@ void POLYBENCH_FDTD_2D::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_FDTD_2D_1));
         for (Index_type j = 0; j < ny; j++) {
           POLYBENCH_FDTD_2D_BODY1;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_FDTD_2D_1));
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_FDTD_2D_2));
         for (Index_type i = 1; i < nx; i++) {
           for (Index_type j = 0; j < ny; j++) {
             POLYBENCH_FDTD_2D_BODY2;
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_FDTD_2D_2));
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_FDTD_2D_3));
         for (Index_type i = 0; i < nx; i++) {
           for (Index_type j = 1; j < ny; j++) {
             POLYBENCH_FDTD_2D_BODY3;
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_FDTD_2D_3));
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_FDTD_2D_4));
         for (Index_type i = 0; i < nx - 1; i++) {
           for (Index_type j = 0; j < ny - 1; j++) {
             POLYBENCH_FDTD_2D_BODY4;
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_FDTD_2D_4));
 
         t = (t+1) % m_tsteps;
       }
@@ -84,24 +92,32 @@ void POLYBENCH_FDTD_2D::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_FDTD_2D_1));
         for (Index_type j = 0; j < ny; j++) {
           poly_fdtd2d_base_lam1(j);
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_FDTD_2D_1));
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_FDTD_2D_2));
         for (Index_type i = 1; i < nx; i++) {
           for (Index_type j = 0; j < ny; j++) {
             poly_fdtd2d_base_lam2(i, j);
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_FDTD_2D_2));
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_FDTD_2D_3));
         for (Index_type i = 0; i < nx; i++) {
           for (Index_type j = 1; j < ny; j++) {
             poly_fdtd2d_base_lam3(i, j);
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_FDTD_2D_3));
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_FDTD_2D_4));
         for (Index_type i = 0; i < nx - 1; i++) {
           for (Index_type j = 0; j < ny - 1; j++) {
             poly_fdtd2d_base_lam4(i, j);
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_FDTD_2D_4));
 
         t = (t+1) % m_tsteps;
       }  // run_reps

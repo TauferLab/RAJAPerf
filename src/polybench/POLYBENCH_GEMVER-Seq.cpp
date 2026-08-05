@@ -35,12 +35,15 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_GEMVER_1));
         for (Index_type i = 0; i < n; i++ ) {
           for (Index_type j = 0; j < n; j++) {
             POLYBENCH_GEMVER_BODY1;
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_GEMVER_1));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_GEMVER_2));
         for (Index_type i = 0; i < n; i++ ) {
           POLYBENCH_GEMVER_BODY2;
           for (Index_type j = 0; j < n; j++) {
@@ -48,11 +51,15 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
           }
           POLYBENCH_GEMVER_BODY4;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_GEMVER_2));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_GEMVER_3));
         for (Index_type i = 0; i < n; i++ ) {
           POLYBENCH_GEMVER_BODY5;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_GEMVER_3));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_GEMVER_4));
         for (Index_type i = 0; i < n; i++ ) {
           POLYBENCH_GEMVER_BODY6;
           for (Index_type j = 0; j < n; j++) {
@@ -60,6 +67,7 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
           }
           POLYBENCH_GEMVER_BODY8;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_GEMVER_4));
 
       }
       stopTimer();
@@ -95,12 +103,15 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_GEMVER_1));
         for (Index_type i = 0; i < n; i++ ) {
           for (Index_type j = 0; j < n; j++) {
             poly_gemver_base_lam1(i, j);
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_GEMVER_1));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_GEMVER_2));
         for (Index_type i = 0; i < n; i++ ) {
           POLYBENCH_GEMVER_BODY2;
           for (Index_type j = 0; j < n; j++) {
@@ -108,11 +119,15 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
           }
           poly_gemver_base_lam4(i, dot);
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_GEMVER_2));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_GEMVER_3));
         for (Index_type i = 0; i < n; i++ ) {
           poly_gemver_base_lam5(i);
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_GEMVER_3));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_GEMVER_4));
         for (Index_type i = 0; i < n; i++ ) {
           POLYBENCH_GEMVER_BODY6;
           for (Index_type j = 0; j < n; j++) {
@@ -120,6 +135,7 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
           }
           poly_gemver_base_lam8(i, dot);
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_GEMVER_4));
 
       }
       stopTimer();

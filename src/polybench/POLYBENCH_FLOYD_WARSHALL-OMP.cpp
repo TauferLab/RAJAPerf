@@ -41,6 +41,7 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_FLOYD_WARSHALL_k));
         for (Index_type k = 0; k < N; ++k) {
 #if defined(USE_OMP_COLLAPSE)
           #pragma omp parallel for collapse(2)
@@ -53,6 +54,7 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid)
             }
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_FLOYD_WARSHALL_k));
 
       }
       stopTimer();
@@ -71,6 +73,7 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_FLOYD_WARSHALL_k));
         for (Index_type k = 0; k < N; ++k) {
 #if defined(USE_OMP_COLLAPSE)
           #pragma omp parallel for collapse(2)
@@ -83,6 +86,7 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid)
             }
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_FLOYD_WARSHALL_k));
 
       }
       stopTimer();

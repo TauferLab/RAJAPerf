@@ -33,6 +33,7 @@ void POLYBENCH_FLOYD_WARSHALL::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_FLOYD_WARSHALL_k));
         for (Index_type k = 0; k < N; ++k) {
           for (Index_type i = 0; i < N; ++i) {
             for (Index_type j = 0; j < N; ++j) {
@@ -40,6 +41,7 @@ void POLYBENCH_FLOYD_WARSHALL::runSeqVariant(VariantID vid)
             }
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_FLOYD_WARSHALL_k));
 
       }
       stopTimer();
@@ -60,6 +62,7 @@ void POLYBENCH_FLOYD_WARSHALL::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_FLOYD_WARSHALL_k));
         for (Index_type k = 0; k < N; ++k) {
           for (Index_type i = 0; i < N; ++i) {
             for (Index_type j = 0; j < N; ++j) {
@@ -67,6 +70,7 @@ void POLYBENCH_FLOYD_WARSHALL::runSeqVariant(VariantID vid)
             }
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_FLOYD_WARSHALL_k));
 
       }
       stopTimer();

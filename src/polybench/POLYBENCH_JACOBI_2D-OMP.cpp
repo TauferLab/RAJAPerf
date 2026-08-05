@@ -130,14 +130,16 @@ void POLYBENCH_JACOBI_2D::runOpenMPVariant(VariantID vid)
           res,
           poly_jacobi2d_lam1
         );
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_JACOBI_2D_1));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_2D_2));
         RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                            RAJA::RangeSegment{1, N-1}),
           res,
           poly_jacobi2d_lam2
         );
-        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_JACOBI_2D_1));
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_JACOBI_2D_2));
 
       }
       stopTimer();

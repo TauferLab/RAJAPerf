@@ -35,6 +35,7 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_1));
         for (Index_type i = 0; i < ni; i++ ) {
           for (Index_type j = 0; j < nj; j++) {
             POLYBENCH_3MM_BODY1;
@@ -44,7 +45,9 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
             POLYBENCH_3MM_BODY3;
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_3MM_1));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_2));
         for (Index_type j = 0; j < nj; j++) {
           for (Index_type l = 0; l < nl; l++) {
             POLYBENCH_3MM_BODY4;
@@ -54,7 +57,9 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
             POLYBENCH_3MM_BODY6;
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_3MM_2));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_3));
         for (Index_type i = 0; i < ni; i++) {
           for (Index_type l = 0; l < nl; l++) {
             POLYBENCH_3MM_BODY7;
@@ -64,6 +69,7 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
             POLYBENCH_3MM_BODY9;
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_3MM_3));
 
       }
       stopTimer();
@@ -103,6 +109,7 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_1));
         for (Index_type i = 0; i < ni; i++ )  {
           for (Index_type j = 0; j < nj; j++) {
             POLYBENCH_3MM_BODY1;
@@ -112,7 +119,9 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
             poly_3mm_base_lam3(i, j, dot);
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_3MM_1));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_2));
         for (Index_type j = 0; j < nj; j++) {
           for (Index_type l = 0; l < nl; l++) {
             POLYBENCH_3MM_BODY4;
@@ -122,7 +131,9 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
             poly_3mm_base_lam6(j, l, dot);
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_3MM_2));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_3));
         for (Index_type i = 0; i < ni; i++) {
           for (Index_type l = 0; l < nl; l++) {
             POLYBENCH_3MM_BODY7;
@@ -132,6 +143,7 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
             poly_3mm_base_lam9(i, l, dot);
           }
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_3MM_3));
 
       }
       stopTimer();

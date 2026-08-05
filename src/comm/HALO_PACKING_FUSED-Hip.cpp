@@ -269,7 +269,9 @@ void HALO_PACKING_FUSED::runHipVariantWorkGroup(VariantID vid)
         }
       }
       workgroup group_pack = pool_pack.instantiate();
+      RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_PACKING_FUSED_pack));
       worksite site_pack = group_pack.run(res);
+      RP_CALI_MARK_END(RP_CALI_REGION(HALO_PACKING_FUSED_pack));
       if (separate_buffers) {
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Index_type len = pack_index_list_lengths[l];
@@ -293,7 +295,9 @@ void HALO_PACKING_FUSED::runHipVariantWorkGroup(VariantID vid)
         }
       }
       workgroup group_unpack = pool_unpack.instantiate();
+      RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_PACKING_FUSED_unpack));
       worksite site_unpack = group_unpack.run(res);
+      RP_CALI_MARK_END(RP_CALI_REGION(HALO_PACKING_FUSED_unpack));
       res.wait();
 
     }

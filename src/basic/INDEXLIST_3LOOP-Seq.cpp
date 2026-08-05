@@ -36,21 +36,27 @@ void INDEXLIST_3LOOP::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(INDEXLIST_3LOOP_1));
         for (Index_type i = ibegin; i < iend; ++i ) {
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(INDEXLIST_3LOOP_1));
 
         Index_type count = 0;
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(INDEXLIST_3LOOP_2));
         for (Index_type i = ibegin; i < iend+1; ++i ) {
           Index_type inc = counts[i];
           counts[i] = count;
           count += inc;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(INDEXLIST_3LOOP_2));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(INDEXLIST_3LOOP_3));
         for (Index_type i = ibegin; i < iend; ++i ) {
           INDEXLIST_3LOOP_MAKE_LIST;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(INDEXLIST_3LOOP_3));
 
         m_len = counts[iend];
 
@@ -79,21 +85,27 @@ void INDEXLIST_3LOOP::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(INDEXLIST_3LOOP_1));
         for (Index_type i = ibegin; i < iend; ++i ) {
           indexlist_conditional_lam(i);
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(INDEXLIST_3LOOP_1));
 
         Index_type count = 0;
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(INDEXLIST_3LOOP_2));
         for (Index_type i = ibegin; i < iend+1; ++i ) {
           Index_type inc = counts[i];
           counts[i] = count;
           count += inc;
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(INDEXLIST_3LOOP_2));
 
+        RP_CALI_MARK_BEGIN(RP_CALI_REGION(INDEXLIST_3LOOP_3));
         for (Index_type i = ibegin; i < iend; ++i ) {
           indexlist_make_list_lam(i);
         }
+        RP_CALI_MARK_END(RP_CALI_REGION(INDEXLIST_3LOOP_3));
 
         m_len = counts[iend];
 
