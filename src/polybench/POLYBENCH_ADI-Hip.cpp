@@ -94,7 +94,7 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-2, block_size);
       constexpr size_t shmem = 0;
 
-      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ADI_1));
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_ADI_1");
       RPlaunchHipKernel( (poly_adi1<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
@@ -102,9 +102,9 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
                          a, b, c,
                          d, f,
                          P, Q, U, V );
-      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ADI_1));
+      RP_CALI_SUBKERNEL_END("POLYBENCH_ADI_1");
 
-      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ADI_2));
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_ADI_2");
       RPlaunchHipKernel( (poly_adi2<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
@@ -112,7 +112,7 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
                          a, c, d,
                          e, f,
                          P, Q, U, V );
-      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ADI_2));
+      RP_CALI_SUBKERNEL_END("POLYBENCH_ADI_2");
 
     }
     stopTimer();
@@ -137,13 +137,13 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
         }
       };
 
-      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ADI_1));
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_ADI_1");
       RPlaunchHipKernel( (poly_adi_lam<block_size,
                                        decltype(poly_adi1_lambda)>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          n, poly_adi1_lambda );
-      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ADI_1));
+      RP_CALI_SUBKERNEL_END("POLYBENCH_ADI_1");
 
       auto poly_adi2_lambda = [=] __device__ (Index_type i) {
         POLYBENCH_ADI_BODY6;
@@ -156,13 +156,13 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
         }
       };
 
-      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ADI_2));
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_ADI_2");
       RPlaunchHipKernel( (poly_adi_lam<block_size,
                                        decltype(poly_adi2_lambda)>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          n, poly_adi2_lambda );
-      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ADI_2));
+      RP_CALI_SUBKERNEL_END("POLYBENCH_ADI_2");
 
     }
     stopTimer();
@@ -191,7 +191,7 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ADI_1));
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_ADI_1");
       RAJA::kernel_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                          RAJA::RangeSegment{1, n-1},
@@ -211,9 +211,9 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
           POLYBENCH_ADI_BODY5_RAJA;
         }
       );
-      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ADI_1));
+      RP_CALI_SUBKERNEL_END("POLYBENCH_ADI_1");
 
-      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ADI_2));
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_ADI_2");
       RAJA::kernel_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                          RAJA::RangeSegment{1, n-1},
@@ -233,7 +233,7 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
           POLYBENCH_ADI_BODY9_RAJA;
         }
       );
-      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ADI_2));
+      RP_CALI_SUBKERNEL_END("POLYBENCH_ADI_2");
 
     } // run_reps
     stopTimer();

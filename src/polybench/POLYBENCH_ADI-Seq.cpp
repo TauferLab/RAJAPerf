@@ -33,7 +33,7 @@ void POLYBENCH_ADI::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ADI_1));
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_ADI_1");
         for (Index_type i = 1; i < n-1; ++i) {
           POLYBENCH_ADI_BODY2;
           for (Index_type j = 1; j < n-1; ++j) {
@@ -44,9 +44,9 @@ void POLYBENCH_ADI::runSeqVariant(VariantID vid)
             POLYBENCH_ADI_BODY5;
           }
         }
-        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ADI_1));
+        RP_CALI_SUBKERNEL_END("POLYBENCH_ADI_1");
 
-        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ADI_2));
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_ADI_2");
         for (Index_type i = 1; i < n-1; ++i) {
           POLYBENCH_ADI_BODY6;
           for (Index_type j = 1; j < n-1; ++j) {
@@ -57,7 +57,7 @@ void POLYBENCH_ADI::runSeqVariant(VariantID vid)
             POLYBENCH_ADI_BODY9;
           }
         }
-        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ADI_2));
+        RP_CALI_SUBKERNEL_END("POLYBENCH_ADI_2");
 
       }
       stopTimer();
@@ -97,7 +97,7 @@ void POLYBENCH_ADI::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ADI_1));
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_ADI_1");
         for (Index_type i = 1; i < n-1; ++i) {
           poly_adi_base_lam2(i);
           for (Index_type j = 1; j < n-1; ++j) {
@@ -108,9 +108,9 @@ void POLYBENCH_ADI::runSeqVariant(VariantID vid)
             poly_adi_base_lam5(i, k);
           }
         }
-        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ADI_1));
+        RP_CALI_SUBKERNEL_END("POLYBENCH_ADI_1");
 
-        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ADI_2));
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_ADI_2");
         for (Index_type i = 1; i < n-1; ++i) {
           poly_adi_base_lam6(i);
           for (Index_type j = 1; j < n-1; ++j) {
@@ -121,7 +121,7 @@ void POLYBENCH_ADI::runSeqVariant(VariantID vid)
             poly_adi_base_lam9(i, k);
           }
         }
-        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ADI_2));
+        RP_CALI_SUBKERNEL_END("POLYBENCH_ADI_2");
 
       }  // run_reps
       stopTimer();
@@ -178,7 +178,7 @@ void POLYBENCH_ADI::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ADI_1));
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_ADI_1");
         RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                            RAJA::RangeSegment{1, n-1},
@@ -191,9 +191,9 @@ void POLYBENCH_ADI::runSeqVariant(VariantID vid)
           poly_adi_lam5
 
         );
-        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ADI_1));
+        RP_CALI_SUBKERNEL_END("POLYBENCH_ADI_1");
 
-        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ADI_2));
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_ADI_2");
         RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                            RAJA::RangeSegment{1, n-1},
@@ -206,7 +206,7 @@ void POLYBENCH_ADI::runSeqVariant(VariantID vid)
           poly_adi_lam9
 
         );
-        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ADI_2));
+        RP_CALI_SUBKERNEL_END("POLYBENCH_ADI_2");
 
       } // run_reps
       stopTimer();

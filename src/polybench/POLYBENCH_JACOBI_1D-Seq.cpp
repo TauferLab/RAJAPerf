@@ -43,16 +43,16 @@ void POLYBENCH_JACOBI_1D::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_1D_1));
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_1D_1");
         for (Index_type i = 1; i < N-1; ++i ) {
           POLYBENCH_JACOBI_1D_BODY1;
         }
-        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_JACOBI_1D_1));
-        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_1D_2));
+        RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_1D_1");
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_1D_2");
         for (Index_type i = 1; i < N-1; ++i ) {
           POLYBENCH_JACOBI_1D_BODY2;
         }
-        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_JACOBI_1D_2));
+        RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_1D_2");
 
       }
       stopTimer();
@@ -68,16 +68,16 @@ void POLYBENCH_JACOBI_1D::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_1D_1));
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_1D_1");
         for (Index_type i = 1; i < N-1; ++i ) {
           poly_jacobi1d_lam1(i);
         }
-        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_JACOBI_1D_1));
-        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_1D_2));
+        RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_1D_1");
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_1D_2");
         for (Index_type i = 1; i < N-1; ++i ) {
           poly_jacobi1d_lam2(i);
         }
-        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_JACOBI_1D_2));
+        RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_1D_2");
 
       }
       stopTimer();
@@ -93,19 +93,19 @@ void POLYBENCH_JACOBI_1D::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_1D_1));
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_1D_1");
         RAJA::forall<RAJA::seq_exec> ( res,
           RAJA::RangeSegment{1, N-1},
           poly_jacobi1d_lam1
         );
-        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_JACOBI_1D_1));
+        RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_1D_1");
 
-        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_1D_2));
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_1D_2");
         RAJA::forall<RAJA::seq_exec> ( res,
           RAJA::RangeSegment{1, N-1},
           poly_jacobi1d_lam2
         );
-        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_JACOBI_1D_2));
+        RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_1D_2");
 
       }
       stopTimer();

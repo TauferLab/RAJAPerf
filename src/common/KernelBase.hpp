@@ -91,8 +91,6 @@
 
 #endif
 
-#define RP_CALI_REGION(name) #name
-
 //
 // Macro to increment rep loop counter: quiets C++20 compiler warning
 //

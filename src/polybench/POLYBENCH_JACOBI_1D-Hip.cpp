@@ -65,19 +65,19 @@ void POLYBENCH_JACOBI_1D::runHipVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
       constexpr size_t shmem = 0;
 
-      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_1D_1));
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_1D_1");
       RPlaunchHipKernel( (poly_jacobi_1D_1<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          A, B, N );
-      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_JACOBI_1D_1));
+      RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_1D_1");
 
-      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_1D_2));
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_1D_2");
       RPlaunchHipKernel( (poly_jacobi_1D_2<block_size>),
                          grid_size, block_size,
                          shmem, res.get_stream(),
                          A, B, N );
-      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_JACOBI_1D_2));
+      RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_1D_2");
 
     }
     stopTimer();
@@ -90,19 +90,19 @@ void POLYBENCH_JACOBI_1D::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_1D_1));
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_1D_1");
       RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{1, N-1},
         [=] __device__ (Index_type i) {
           POLYBENCH_JACOBI_1D_BODY1;
       });
-      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_JACOBI_1D_1));
+      RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_1D_1");
 
-      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_JACOBI_1D_2));
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_JACOBI_1D_2");
       RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{1, N-1},
         [=] __device__ (Index_type i) {
           POLYBENCH_JACOBI_1D_BODY2;
       });
-      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_JACOBI_1D_2));
+      RP_CALI_SUBKERNEL_END("POLYBENCH_JACOBI_1D_2");
 
     }
     stopTimer();
