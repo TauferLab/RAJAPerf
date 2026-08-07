@@ -60,7 +60,6 @@ void INDEXLIST_3LOOP::runOpenMPTargetVariant(VariantID vid)
         RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_1");
 
         Index_type count = 0;
-        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
         #pragma omp target is_device_ptr(counts) device( did )
         #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) \
                                                   reduction(inscan, +:count)
@@ -70,15 +69,14 @@ void INDEXLIST_3LOOP::runOpenMPTargetVariant(VariantID vid)
           #pragma omp scan exclusive(count)
           count += inc;
         }
-        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 
-        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_3");
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
         #pragma omp target is_device_ptr(counts, list) device( did )
         #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
         for (Index_type i = ibegin; i < iend; ++i ) {
           INDEXLIST_3LOOP_MAKE_LIST;
         }
-        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_3");
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 
         m_len = counts[iend];
 

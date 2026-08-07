@@ -39,7 +39,7 @@ void FEMSWEEP::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+RP_CALI_SUBKERNEL_BEGIN("FEMSWEEP_1");
 #if defined(USE_OMP_COLLAPSE)
         #pragma omp parallel for collapse(2)
         for (Index_type a = 0; a < na; ++a)
@@ -69,6 +69,7 @@ void FEMSWEEP::runOpenMPVariant(VariantID vid)
       stopTimer();
 
       break;
+RP_CALI_SUBKERNEL_END("FEMSWEEP_1");
     }
 
     case RAJA_OpenMP : {
@@ -89,7 +90,7 @@ void FEMSWEEP::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("FEMSWEEP_1");
         RAJA::launch<launch_policy>( res,
             RAJA::LaunchParams(),
             [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
@@ -111,6 +112,7 @@ void FEMSWEEP::runOpenMPVariant(VariantID vid)
             }
           });  // ag loop
         });
+        RP_CALI_SUBKERNEL_END("FEMSWEEP_1");
 
       }
       stopTimer();

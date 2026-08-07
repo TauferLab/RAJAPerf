@@ -125,7 +125,7 @@ void SCAN::runHipVariantLibrary(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("SCAN_1");
       // Run
 #if defined(__HIPCC__)
       CAMP_HIP_API_INVOKE_AND_CHECK(::rocprim::exclusive_scan,
@@ -146,6 +146,7 @@ void SCAN::runHipVariantLibrary(VariantID vid)
           len,
           stream);
 #endif
+      RP_CALI_SUBKERNEL_END("SCAN_1");
 
     }
     stopTimer();
@@ -158,8 +159,9 @@ void SCAN::runHipVariantLibrary(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("SCAN_1");
       RAJA::exclusive_scan< RAJA::hip_exec<0, true /*async*/> >(res, RAJA_SCAN_ARGS);
+      RP_CALI_SUBKERNEL_END("SCAN_1");
 
     }
     stopTimer();
@@ -197,7 +199,7 @@ void SCAN::runHipVariantCustom(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("SCAN_1");
       CAMP_HIP_API_INVOKE_AND_CHECK( hipMemsetAsync,
           block_readys, 0, sizeof(unsigned)*grid_size, res.get_stream() );
 
@@ -207,6 +209,7 @@ void SCAN::runHipVariantCustom(VariantID vid)
                          x+ibegin, y+ibegin,
                          block_counts, grid_counts, block_readys,
                          iend-ibegin );
+      RP_CALI_SUBKERNEL_END("SCAN_1");
 
     }
     stopTimer();

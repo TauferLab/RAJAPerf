@@ -282,12 +282,13 @@ void MASSVEC3DPA::runCudaVariantImpl(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("MASSVEC3DPA_1");
         dim3 nthreads_per_block(mvpa::Q1D, mvpa::Q1D, mvpa::Q1D);
         constexpr size_t shmem = 0;
 
         RPlaunchCudaKernel((MassVec3DPALoop<block_size>), NE, nthreads_per_block,
                            shmem, res.get_stream(), B, D, X, Y);
+        RP_CALI_SUBKERNEL_END("MASSVEC3DPA_1");
       }
       stopTimer();
 
@@ -296,12 +297,13 @@ void MASSVEC3DPA::runCudaVariantImpl(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("MASSVEC3DPA_1");
         dim3 nthreads_per_block(mvpa::Q1D, mvpa::Q1D, mvpa::Q1D);
         constexpr size_t shmem = 0;
 
         RPlaunchCudaKernel((MassVec3DPADirect<block_size>), NE, nthreads_per_block,
                            shmem, res.get_stream(), B, D, X, Y);
+        RP_CALI_SUBKERNEL_END("MASSVEC3DPA_1");
       }
       stopTimer();
     }
@@ -331,8 +333,9 @@ void MASSVEC3DPA::runCudaVariantImpl(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("MASSVEC3DPA_1");
         MASSVEC3DPA_CUDA_RAJA_LAUNCH;
+        RP_CALI_SUBKERNEL_END("MASSVEC3DPA_1");
 
       } // loop over kernel reps
       stopTimer();
@@ -358,8 +361,9 @@ void MASSVEC3DPA::runCudaVariantImpl(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("MASSVEC3DPA_1");
         MASSVEC3DPA_CUDA_RAJA_LAUNCH;
+        RP_CALI_SUBKERNEL_END("MASSVEC3DPA_1");
 
       } // loop over kernel reps
       stopTimer();
@@ -389,8 +393,9 @@ void MASSVEC3DPA::runCudaVariantImpl(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("MASSVEC3DPA_1");
         MASSVEC3DPA_CUDA_RAJA_LAUNCH;
+        RP_CALI_SUBKERNEL_END("MASSVEC3DPA_1");
 
       } // loop over kernel reps
       stopTimer();

@@ -77,7 +77,7 @@ void FEMSWEEP::runHipVariantImpl(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+         RP_CALI_SUBKERNEL_BEGIN("FEMSWEEP_1");
          const dim3 grid_size(ng, na);
          constexpr size_t shmem = 0;
 
@@ -102,6 +102,7 @@ void FEMSWEEP::runHipVariantImpl(VariantID vid)
                             F_g2l,
                             idx1,
                             idx2 );
+         RP_CALI_SUBKERNEL_END("FEMSWEEP_1");
 
       }
       stopTimer();
@@ -128,7 +129,7 @@ void FEMSWEEP::runHipVariantImpl(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+         RP_CALI_SUBKERNEL_BEGIN("FEMSWEEP_1");
          RAJA::launch<launch_policy>( res,
              RAJA::LaunchParams(RAJA::Teams(ng, na),
                                 RAJA::Threads(block_size)),
@@ -152,6 +153,7 @@ void FEMSWEEP::runHipVariantImpl(VariantID vid)
              });  // g loop
            });  // a loop
          });  // RAJA Launch
+         RP_CALI_SUBKERNEL_END("FEMSWEEP_1");
 
       }
       stopTimer();

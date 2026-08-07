@@ -122,7 +122,7 @@ void REDUCE_STRUCT::runHipVariantBase(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("REDUCE_STRUCT_1");
       Real_type imem[6] {m_init_sum, m_init_min, m_init_max, m_init_sum, m_init_min, m_init_max};
       RAJAPERF_HIP_REDUCER_INITIALIZE(imem, mem, hmem, 6, 1);
 
@@ -145,6 +145,7 @@ void REDUCE_STRUCT::runHipVariantBase(VariantID vid)
       points.SetYMin(hmem[4]);
       points.SetYMax(hmem[5]);
       m_points = points;
+      RP_CALI_SUBKERNEL_END("REDUCE_STRUCT_1");
 
     }
     stopTimer();
@@ -183,7 +184,7 @@ void REDUCE_STRUCT::runHipVariantRAJA(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("REDUCE_STRUCT_1");
       RAJA::ReduceSum<reduction_policy, Real_type> xsum(m_init_sum);
       RAJA::ReduceSum<reduction_policy, Real_type> ysum(m_init_sum);
       RAJA::ReduceMin<reduction_policy, Real_type> xmin(m_init_min);
@@ -203,6 +204,7 @@ void REDUCE_STRUCT::runHipVariantRAJA(VariantID vid)
       points.SetYMin((ymin.get()));
       points.SetYMax((ymax.get()));
       m_points = points;
+      RP_CALI_SUBKERNEL_END("REDUCE_STRUCT_1");
 
     }
     stopTimer();
@@ -235,7 +237,7 @@ void REDUCE_STRUCT::runHipVariantRAJANewReduce(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("REDUCE_STRUCT_1");
       Real_type txsum = m_init_sum;
       Real_type tysum = m_init_sum;
       Real_type txmin = m_init_min;
@@ -269,6 +271,7 @@ void REDUCE_STRUCT::runHipVariantRAJANewReduce(VariantID vid)
       points.SetYMin(static_cast<Real_type>(tymin));
       points.SetYMax(static_cast<Real_type>(tymax));
       m_points = points;
+      RP_CALI_SUBKERNEL_END("REDUCE_STRUCT_1");
 
     }
     stopTimer();

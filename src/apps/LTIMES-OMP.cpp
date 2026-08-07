@@ -36,7 +36,7 @@ void LTIMES::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("LTIMES_1");
         #pragma omp parallel for
         for (RAJA::Index_type iz = 0; iz < *num_z; ++iz ) {
           IZ z(iz);
@@ -48,6 +48,7 @@ void LTIMES::runOpenMPVariant(VariantID vid)
             }
           }
         }
+        RP_CALI_SUBKERNEL_END("LTIMES_1");
 
       }
       stopTimer();
@@ -64,7 +65,7 @@ void LTIMES::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("LTIMES_1");
         #pragma omp parallel for
         for (RAJA::Index_type iz = 0; iz < *num_z; ++iz ) {
           IZ z(iz);
@@ -76,6 +77,7 @@ void LTIMES::runOpenMPVariant(VariantID vid)
             }
           }
         }
+        RP_CALI_SUBKERNEL_END("LTIMES_1");
 
       }
       stopTimer();
@@ -109,7 +111,7 @@ void LTIMES::runOpenMPVariant(VariantID vid)
         startTimer();
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+          RP_CALI_SUBKERNEL_BEGIN("LTIMES_1");
           RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(IDRange(0, *num_d),
                                                             IZRange(0, *num_z),
                                                             IGRange(0, *num_g),
@@ -117,6 +119,7 @@ void LTIMES::runOpenMPVariant(VariantID vid)
                                            res,
                                            ltimes_lam
                                          );
+          RP_CALI_SUBKERNEL_END("LTIMES_1");
 
         }
         stopTimer();
@@ -136,7 +139,7 @@ void LTIMES::runOpenMPVariant(VariantID vid)
         startTimer();
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+          RP_CALI_SUBKERNEL_BEGIN("LTIMES_1");
           RAJA::launch<launch_policy>( res,
               RAJA::LaunchParams(),
               [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
@@ -161,6 +164,7 @@ void LTIMES::runOpenMPVariant(VariantID vid)
 
               } // outer lambda (ctx)
           );    // RAJA::launch
+          RP_CALI_SUBKERNEL_END("LTIMES_1");
 
         } // loop over kernel reps
         stopTimer();

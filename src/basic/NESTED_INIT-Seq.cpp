@@ -38,7 +38,7 @@ void NESTED_INIT::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
         for (Index_type k = 0; k < nk; ++k ) {
           for (Index_type j = 0; j < nj; ++j ) {
             for (Index_type i = 0; i < ni; ++i ) {
@@ -46,6 +46,7 @@ void NESTED_INIT::runSeqVariant(VariantID vid)
             }
           }
         }
+        RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
 
       }
       stopTimer();
@@ -59,7 +60,7 @@ void NESTED_INIT::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+          RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
           for (Index_type k = 0; k < nk; ++k ) {
             for (Index_type j = 0; j < nj; ++j ) {
               for (Index_type i = 0; i < ni; ++i ) {
@@ -67,6 +68,7 @@ void NESTED_INIT::runSeqVariant(VariantID vid)
               }
             }
           }
+          RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
 
       }
       stopTimer();
@@ -92,13 +94,14 @@ void NESTED_INIT::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
         RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                                                           RAJA::RangeSegment(0, nj),
                                                           RAJA::RangeSegment(0, nk)),
                                          res,
                                          nestedinit_lam
                                        );
+        RP_CALI_SUBKERNEL_END("NESTED_INIT_1");
 
       }
       stopTimer();

@@ -36,11 +36,12 @@ void NODAL_ACCUMULATION_3D::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("NODAL_ACCUMULATION_3D_1");
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
           NODAL_ACCUMULATION_3D_BODY_INDEX;
           NODAL_ACCUMULATION_3D_BODY(RAJAPERF_ATOMIC_ADD_SEQ);
         }
+        RP_CALI_SUBKERNEL_END("NODAL_ACCUMULATION_3D_1");
 
       }
       stopTimer();
@@ -59,10 +60,11 @@ void NODAL_ACCUMULATION_3D::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("NODAL_ACCUMULATION_3D_1");
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
           nodal_accumulation_3d_lam(ii);
         }
+        RP_CALI_SUBKERNEL_END("NODAL_ACCUMULATION_3D_1");
 
       }
       stopTimer();
@@ -83,8 +85,9 @@ void NODAL_ACCUMULATION_3D::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("NODAL_ACCUMULATION_3D_1");
         RAJA::forall<RAJA::seq_exec>(res, zones, nodal_accumulation_3d_lam);
+        RP_CALI_SUBKERNEL_END("NODAL_ACCUMULATION_3D_1");
 
       }
       stopTimer();

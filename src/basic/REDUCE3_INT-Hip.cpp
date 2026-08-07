@@ -92,7 +92,7 @@ void REDUCE3_INT::runHipVariantBase(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("REDUCE3_INT_1");
       Int_type ivmem[3] {m_vsum_init, m_vmin_init, m_vmax_init};
       RAJAPERF_HIP_REDUCER_INITIALIZE(ivmem, vmem, hvmem, 3, 1);
 
@@ -112,6 +112,7 @@ void REDUCE3_INT::runHipVariantBase(VariantID vid)
       m_vsum = hvmem[0];
       m_vmin = hvmem[1];
       m_vmax = hvmem[2];
+      RP_CALI_SUBKERNEL_END("REDUCE3_INT_1");
 
     }
     stopTimer();
@@ -149,7 +150,7 @@ void REDUCE3_INT::runHipVariantRAJA(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("REDUCE3_INT_1");
       RAJA::ReduceSum<reduction_policy, Int_type> vsum(m_vsum_init);
       RAJA::ReduceMin<reduction_policy, Int_type> vmin(m_vmin_init);
       RAJA::ReduceMax<reduction_policy, Int_type> vmax(m_vmax_init);
@@ -162,6 +163,7 @@ void REDUCE3_INT::runHipVariantRAJA(VariantID vid)
       m_vsum = static_cast<Int_type>(vsum.get());
       m_vmin = static_cast<Int_type>(vmin.get());
       m_vmax = static_cast<Int_type>(vmax.get());
+      RP_CALI_SUBKERNEL_END("REDUCE3_INT_1");
 
     }
     stopTimer();
@@ -193,7 +195,7 @@ void REDUCE3_INT::runHipVariantRAJANewReduce(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("REDUCE3_INT_1");
       Int_type tvsum = m_vsum_init;
       Int_type tvmin = m_vmin_init;
       Int_type tvmax = m_vmax_init;
@@ -214,6 +216,7 @@ void REDUCE3_INT::runHipVariantRAJANewReduce(VariantID vid)
       m_vsum = static_cast<Int_type>(tvsum);
       m_vmin = static_cast<Int_type>(tvmin);
       m_vmax = static_cast<Int_type>(tvmax);
+      RP_CALI_SUBKERNEL_END("REDUCE3_INT_1");
 
     }
     stopTimer();

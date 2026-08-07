@@ -34,8 +34,9 @@ void SORT::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("SORT_1");
         std::sort(STD_SORT_ARGS);
+        RP_CALI_SUBKERNEL_END("SORT_1");
 
       }
       stopTimer();
@@ -51,8 +52,9 @@ void SORT::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("SORT_1");
         RAJA::sort<RAJA::seq_exec>(res, RAJA_SORT_ARGS);
+        RP_CALI_SUBKERNEL_END("SORT_1");
 
       }
       stopTimer();

@@ -34,12 +34,13 @@ void PI_ATOMIC::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("PI_ATOMIC_1");
         *pi = m_pi_init;
         for (Index_type i = ibegin; i < iend; ++i ) {
           PI_ATOMIC_BODY(RAJAPERF_ATOMIC_ADD_SEQ);
         }
         m_pi_final = *pi * 4.0;
+        RP_CALI_SUBKERNEL_END("PI_ATOMIC_1");
 
       }
       stopTimer();
@@ -57,12 +58,13 @@ void PI_ATOMIC::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("PI_ATOMIC_1");
         *pi = m_pi_init;
         for (Index_type i = ibegin; i < iend; ++i ) {
           piatomic_base_lam(i);
         }
         m_pi_final = *pi * 4.0;
+        RP_CALI_SUBKERNEL_END("PI_ATOMIC_1");
 
       }
       stopTimer();
@@ -77,7 +79,7 @@ void PI_ATOMIC::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("PI_ATOMIC_1");
         *pi = m_pi_init;
         RAJA::forall<RAJA::seq_exec>(  res,
           RAJA::RangeSegment(ibegin, iend),
@@ -85,6 +87,7 @@ void PI_ATOMIC::runSeqVariant(VariantID vid)
             PI_ATOMIC_BODY(RAJAPERF_ATOMIC_ADD_RAJA_SEQ);
         });
         m_pi_final = *pi * 4.0;
+        RP_CALI_SUBKERNEL_END("PI_ATOMIC_1");
 
       }
       stopTimer();

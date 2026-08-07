@@ -54,7 +54,6 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
 
 #if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
         Index_type count = 0;
-        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
         #pragma omp parallel for reduction(inscan, +:count)
         for (Index_type i = ibegin; i < iend+1; ++i ) {
           Index_type inc = counts[i];
@@ -62,7 +61,6 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
           #pragma omp scan exclusive(count)
           count += inc;
         }
-        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 #else
         #pragma omp parallel num_threads(p0)
         {
@@ -96,12 +94,12 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
         }
 #endif
 
-        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_3");
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           INDEXLIST_3LOOP_MAKE_LIST;
         }
-        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_3");
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 
         m_len = counts[iend];
 
@@ -145,7 +143,6 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
 
 #if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
         Index_type count = 0;
-        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
         #pragma omp parallel for reduction(inscan, +:count)
         for (Index_type i = ibegin; i < iend+1; ++i ) {
           Index_type inc = counts[i];
@@ -153,7 +150,6 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
           #pragma omp scan exclusive(count)
           count += inc;
         }
-        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 #else
         #pragma omp parallel num_threads(p0)
         {
@@ -187,12 +183,12 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
         }
 #endif
 
-        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_3");
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           indexlist_make_list_lam(i);
         }
-        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_3");
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 
         m_len = counts[iend];
 
@@ -221,13 +217,10 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         });
         RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_1");
-
-        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
         RAJA::exclusive_scan_inplace<RAJA::omp_parallel_for_exec>(
             RAJA::make_span(counts+ibegin, iend+1-ibegin));
-        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 
-        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_3");
+        RP_CALI_SUBKERNEL_BEGIN("INDEXLIST_3LOOP_2");
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
@@ -235,7 +228,7 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
             list[counts[i]] = i;
           }
         });
-        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_3");
+        RP_CALI_SUBKERNEL_END("INDEXLIST_3LOOP_2");
 
         m_len = counts[iend];
 

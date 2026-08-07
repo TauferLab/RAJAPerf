@@ -43,7 +43,7 @@ void HISTOGRAM::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("HISTOGRAM_1");
       initOpenMPDeviceData(counts, counts_init, num_bins);
 
       #pragma omp target is_device_ptr(counts, bins)
@@ -53,6 +53,7 @@ void HISTOGRAM::runOpenMPTargetVariant(VariantID vid)
       }
 
       getOpenMPDeviceData(counts_final, counts, num_bins);
+      RP_CALI_SUBKERNEL_END("HISTOGRAM_1");
 
     }
     stopTimer();

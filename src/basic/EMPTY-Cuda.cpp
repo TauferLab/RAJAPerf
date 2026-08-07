@@ -70,7 +70,7 @@ void EMPTY::runCudaVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("EMPTY_1");
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
 
@@ -78,6 +78,7 @@ void EMPTY::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           iend );
+      RP_CALI_SUBKERNEL_END("EMPTY_1");
 
     }
     stopTimer();
@@ -99,7 +100,7 @@ void EMPTY::runCudaVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("EMPTY_1");
       const size_t normal_grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       const size_t grid_size = std::min(normal_grid_size, max_grid_size);
 
@@ -107,6 +108,7 @@ void EMPTY::runCudaVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           ibegin, iend, empty_lambda );
+      RP_CALI_SUBKERNEL_END("EMPTY_1");
 
     }
     stopTimer();
@@ -120,11 +122,12 @@ void EMPTY::runCudaVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("EMPTY_1");
       RAJA::forall< exec_policy >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         EMPTY_BODY;
       });
+      RP_CALI_SUBKERNEL_END("EMPTY_1");
 
     }
     stopTimer();

@@ -36,11 +36,12 @@ void MATVEC_3D_STENCIL::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("MATVEC_3D_STENCIL_1");
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
           MATVEC_3D_STENCIL_BODY_INDEX;
           MATVEC_3D_STENCIL_BODY;
         }
+        RP_CALI_SUBKERNEL_END("MATVEC_3D_STENCIL_1");
 
       }
       stopTimer();
@@ -59,10 +60,11 @@ void MATVEC_3D_STENCIL::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("MATVEC_3D_STENCIL_1");
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
           matvec_3d_lam(ii);
         }
+        RP_CALI_SUBKERNEL_END("MATVEC_3D_STENCIL_1");
 
       }
       stopTimer();
@@ -83,8 +85,9 @@ void MATVEC_3D_STENCIL::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("MATVEC_3D_STENCIL_1");
         RAJA::forall<RAJA::seq_exec>(res, zones, matvec_3d_lam);
+        RP_CALI_SUBKERNEL_END("MATVEC_3D_STENCIL_1");
 
       }
       stopTimer();

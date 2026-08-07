@@ -43,7 +43,7 @@ void MULTI_REDUCE::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("MULTI_REDUCE_1");
       initOpenMPDeviceData(values, values_init, num_bins);
 
       #pragma omp target is_device_ptr(values, bins, data)
@@ -53,6 +53,7 @@ void MULTI_REDUCE::runOpenMPTargetVariant(VariantID vid)
       }
 
       getOpenMPDeviceData(values_final, values, num_bins);
+      RP_CALI_SUBKERNEL_END("MULTI_REDUCE_1");
 
     }
     stopTimer();

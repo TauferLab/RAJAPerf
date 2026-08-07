@@ -54,7 +54,7 @@ void INIT3::runHipVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("INIT3_1");
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
@@ -64,6 +64,7 @@ void INIT3::runHipVariantImpl(VariantID vid)
                          out1, out2, out3,
                          in1, in2,
                          iend );
+      RP_CALI_SUBKERNEL_END("INIT3_1");
 
     }
     stopTimer();
@@ -73,7 +74,7 @@ void INIT3::runHipVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("INIT3_1");
       auto init3_lambda = [=] __device__ (Index_type i) {
         INIT3_BODY;
       };
@@ -86,6 +87,7 @@ void INIT3::runHipVariantImpl(VariantID vid)
                           grid_size, block_size,
                           shmem, res.get_stream(),
                           ibegin, iend, init3_lambda );
+      RP_CALI_SUBKERNEL_END("INIT3_1");
 
     }
     stopTimer();
@@ -95,11 +97,12 @@ void INIT3::runHipVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("INIT3_1");
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         INIT3_BODY;
       });
+      RP_CALI_SUBKERNEL_END("INIT3_1");
 
     }
     stopTimer();

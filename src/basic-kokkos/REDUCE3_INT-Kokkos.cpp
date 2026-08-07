@@ -37,7 +37,7 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid) {
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("REDUCE3_INT_1");
       Int_type max_value = m_vmax_init;
       Int_type min_value = m_vmin_init;
       Int_type sum = m_vsum_init;
@@ -59,6 +59,7 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid) {
       m_vsum += static_cast<Int_type>(sum);
       m_vmin = std::min(m_vmin, static_cast<Int_type>(min_value));
       m_vmax = std::max(m_vmax, static_cast<Int_type>(max_value));
+      RP_CALI_SUBKERNEL_END("REDUCE3_INT_1");
     }
     Kokkos::fence();
     stopTimer();

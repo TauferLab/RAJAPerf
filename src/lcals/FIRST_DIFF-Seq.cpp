@@ -40,10 +40,11 @@ void FIRST_DIFF::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("FIRST_DIFF_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           FIRST_DIFF_BODY;
         }
+        RP_CALI_SUBKERNEL_END("FIRST_DIFF_1");
 
       }
       stopTimer();
@@ -57,10 +58,11 @@ void FIRST_DIFF::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("FIRST_DIFF_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           firstdiff_lam(i);
         }
+        RP_CALI_SUBKERNEL_END("FIRST_DIFF_1");
 
       }
       stopTimer();
@@ -75,9 +77,10 @@ void FIRST_DIFF::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("FIRST_DIFF_1");
         RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend), firstdiff_lam);
+        RP_CALI_SUBKERNEL_END("FIRST_DIFF_1");
 
       }
       stopTimer();

@@ -34,10 +34,11 @@ void INIT_VIEW1D::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("INIT_VIEW1D_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           INIT_VIEW1D_BODY;
         }
+        RP_CALI_SUBKERNEL_END("INIT_VIEW1D_1");
 
       }
       stopTimer();
@@ -55,10 +56,11 @@ void INIT_VIEW1D::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("INIT_VIEW1D_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           initview1d_base_lam(i);
         }
+        RP_CALI_SUBKERNEL_END("INIT_VIEW1D_1");
 
       }
       stopTimer();
@@ -79,9 +81,10 @@ void INIT_VIEW1D::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("INIT_VIEW1D_1");
         RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend), initview1d_lam);
+        RP_CALI_SUBKERNEL_END("INIT_VIEW1D_1");
 
       }
       stopTimer();

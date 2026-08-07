@@ -35,7 +35,7 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GESUMMV_1");
         #pragma omp parallel for
         for (Index_type i = 0; i < N; ++i ) {
           POLYBENCH_GESUMMV_BODY1;
@@ -44,6 +44,7 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
           }
           POLYBENCH_GESUMMV_BODY3;
         }
+        RP_CALI_SUBKERNEL_END("POLYBENCH_GESUMMV_1");
 
       }
       stopTimer();
@@ -65,7 +66,7 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GESUMMV_1");
         #pragma omp parallel for
         for (Index_type i = 0; i < N; ++i ) {
           POLYBENCH_GESUMMV_BODY1;
@@ -74,6 +75,7 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
           }
           poly_gesummv_base_lam3(i, tmpdot, ydot);
         }
+        RP_CALI_SUBKERNEL_END("POLYBENCH_GESUMMV_1");
 
       }
       stopTimer();
@@ -113,7 +115,7 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+        RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GESUMMV_1");
         RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple( RAJA::RangeSegment{0, N},
                             RAJA::RangeSegment{0, N} ),
@@ -125,6 +127,7 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
           poly_gesummv_lam2,
           poly_gesummv_lam3
         );
+        RP_CALI_SUBKERNEL_END("POLYBENCH_GESUMMV_1");
 
       }
       stopTimer();

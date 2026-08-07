@@ -115,7 +115,7 @@ void MULTI_REDUCE::runHipVariantAtomicRuntime(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("MULTI_REDUCE_1");
       RAJAPERF_HIP_REDUCER_INITIALIZE(values_init, values, hvalues, num_bins, global_replication);
 
       RPlaunchHipKernel( func,
@@ -138,6 +138,7 @@ void MULTI_REDUCE::runHipVariantAtomicRuntime(VariantID vid)
         }
         values_final[bin] = value_final;
       }
+      RP_CALI_SUBKERNEL_END("MULTI_REDUCE_1");
 
     }
     stopTimer();
@@ -167,7 +168,7 @@ void MULTI_REDUCE::runHipVariantAtomicRuntime(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-
+      RP_CALI_SUBKERNEL_BEGIN("MULTI_REDUCE_1");
       MULTI_REDUCE_INIT_VALUES_RAJA(multi_reduce_policy);
 
       RAJA::forall<exec_policy>( res,
@@ -177,6 +178,7 @@ void MULTI_REDUCE::runHipVariantAtomicRuntime(VariantID vid)
       });
 
       MULTI_REDUCE_FINALIZE_VALUES_RAJA(multi_reduce_policy);
+      RP_CALI_SUBKERNEL_END("MULTI_REDUCE_1");
 
     }
     stopTimer();
