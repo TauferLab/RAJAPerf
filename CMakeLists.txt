@@ -216,11 +216,17 @@ endif()
 # Are we using Caliper
 #
 set(RAJA_PERFSUITE_USE_CALIPER off CACHE BOOL "")
+set(RAJA_PERFSUITE_USE_CALIPER_SUBKERNEL on CACHE BOOL
+    "Enable Caliper subkernel regions when Caliper support is enabled")
 if (RAJA_PERFSUITE_USE_CALIPER)
   find_package(caliper REQUIRED)
   list(APPEND RAJA_PERFSUITE_DEPENDS caliper)
   add_definitions(-DRAJA_PERFSUITE_USE_CALIPER)
   message(STATUS "Using Caliper")
+  if (RAJA_PERFSUITE_USE_CALIPER_SUBKERNEL)
+    add_definitions(-DRAJA_PERFSUITE_USE_CALIPER_SUBKERNEL)
+    message(STATUS "Using Caliper subkernel regions")
+  endif()
   find_package(adiak REQUIRED)
   # use ${adiak_LIBRARIES} since version could have adiak vs adiak::adiak export
   list(APPEND RAJA_PERFSUITE_DEPENDS ${adiak_LIBRARIES})

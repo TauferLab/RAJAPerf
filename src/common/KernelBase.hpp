@@ -64,13 +64,28 @@
       doOnceCaliMetaEnd(running_variant,running_tuning); \
     }
 
-#define RP_CALI_SUBKERNEL_BEGIN(name) beginSubkernelCaliperRegion(name)
-#define RP_CALI_SUBKERNEL_END(name) endSubkernelCaliperRegion()
-
 #else
 
 #define CALI_START
 #define CALI_STOP
+
+#endif
+
+#if defined(RAJA_PERFSUITE_USE_CALIPER) && \
+    defined(RAJA_PERFSUITE_USE_CALIPER_SUBKERNEL)
+
+#define RP_CALI_SUBKERNEL_BEGIN(name) \
+    if (isCaliperTiming()) { \
+      cali_begin_string(Subkernel_attr, name); \
+    }
+
+#define RP_CALI_SUBKERNEL_END(name) \
+    if (isCaliperTiming()) { \
+      cali_end(Subkernel_attr); \
+    }
+
+#else
+
 #define RP_CALI_SUBKERNEL_BEGIN(name)
 #define RP_CALI_SUBKERNEL_END(name)
 
@@ -647,18 +662,6 @@ public:
   void caliperOn() { doCaliperTiming = true; }
   void caliperOff() { doCaliperTiming = false; }
   bool isCaliperTiming() const { return doCaliperTiming; }
-  void beginSubkernelCaliperRegion(const char* name)
-  {
-    if (isCaliperTiming()) {
-      cali_begin_string(Subkernel_attr, name);
-    }
-  }
-  void endSubkernelCaliperRegion()
-  {
-    if (isCaliperTiming()) {
-      cali_end(Subkernel_attr);
-    }
-  }
   void doOnceCaliMetaBegin(VariantID vid, size_t tune_idx);
   void doOnceCaliMetaEnd(VariantID vid, size_t tune_idx);
   static void setCaliperMgrVariantTuning(VariantID vid,
@@ -694,6 +697,11 @@ public:
 
 protected:
   const RunParams& run_params;
+
+#if defined(RAJA_PERFSUITE_USE_CALIPER) && \
+    defined(RAJA_PERFSUITE_USE_CALIPER_SUBKERNEL)
+  cali_id_t Subkernel_attr;
+#endif
 
   struct ChecksumTolerance
   {
@@ -812,7 +820,6 @@ private:
   cali_id_t Complexity_attr;
   cali_id_t MaxPerfectLoopDimensions_attr;
   cali_id_t ProblemDimensionality_attr;
-  cali_id_t Subkernel_attr;
 
 
   // we need a Caliper Manager object per variant

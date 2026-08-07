@@ -290,9 +290,11 @@ A few details are worth noting:
     kernels per repetition should mark each subkernel with
     ``RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(<name>))`` and
     ``RP_CALI_SUBKERNEL_END(RP_CALI_REGION(<name>))``. These macros add the Caliper
-    ``subkernel`` attribute when Caliper support is enabled and compile away
-    otherwise. Kernels with only one launch per repetition do not need a
-    subkernel region.
+    ``subkernel`` attribute when Caliper support and
+    ``RAJA_PERFSUITE_USE_CALIPER_SUBKERNEL`` are enabled, and compile away
+    otherwise. Configure with ``-DRAJA_PERFSUITE_USE_CALIPER_SUBKERNEL=Off`` to
+    exclude subkernel regions from Caliper output. Kernels with only one launch
+    per repetition do not need a subkernel region.
   * Name fixed-count subkernels by appending a one-based numeric suffix to the
     kernel name, for example ``POLYBENCH_JACOBI_1D_1`` and
     ``POLYBENCH_JACOBI_1D_2``. For a variable number of launches, append

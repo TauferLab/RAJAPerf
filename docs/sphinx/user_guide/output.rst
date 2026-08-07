@@ -279,14 +279,14 @@ a numeric suffix, such as ``POLYBENCH_JACOBI_1D_1`` and
 ``HALO_EXCHANGE_unpack_k``. Kernels with only one launch per repetition do not
 add this level.
 
-To filter these subkernel regions out of the Caliper tree at runtime, append
-the following to the built-in Caliper configuration::
+When Caliper support is enabled, subkernel regions are compiled in by default.
+To exclude these regions from the Caliper tree, configure the build with::
 
-  raja-perf.exe --atsc "exclude_attributes=subkernel"
+  -DRAJA_PERFSUITE_USE_CALIPER_SUBKERNEL=Off
 
-When profiling API functions such as HIP or MPI calls, excluding the
-``subkernel`` attribute may not remove those regions if the subkernel contains
-API function annotations.
+This compiles the ``RP_CALI_SUBKERNEL_BEGIN`` and
+``RP_CALI_SUBKERNEL_END`` annotations away while preserving the top-level
+Caliper timing regions.
 
 There are several techniques to display the Caliper trees (Timing Hierarchy)
 
