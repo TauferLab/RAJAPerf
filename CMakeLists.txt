@@ -216,9 +216,9 @@ endif()
 # Are we using Caliper
 #
 set(RAJA_PERFSUITE_USE_CALIPER off CACHE BOOL "")
-set(RAJA_PERFSUITE_USE_CALIPER_SUBKERNEL on CACHE BOOL
-    "Enable Caliper subkernel regions when Caliper support is enabled")
 if (RAJA_PERFSUITE_USE_CALIPER)
+  set(RAJA_PERFSUITE_USE_CALIPER_SUBKERNEL on CACHE BOOL
+      "Enable Caliper subkernel regions")
   find_package(caliper REQUIRED)
   list(APPEND RAJA_PERFSUITE_DEPENDS caliper)
   add_definitions(-DRAJA_PERFSUITE_USE_CALIPER)
@@ -243,6 +243,8 @@ if (RAJA_PERFSUITE_USE_CALIPER)
   message(STATUS "Adiak includes : ${adiak_INCLUDE_DIRS}")
   include_directories(${caliper_INCLUDE_DIR})
   include_directories(${adiak_INCLUDE_DIRS})
+else ()
+  unset(RAJA_PERFSUITE_USE_CALIPER_SUBKERNEL CACHE)
 endif ()
 
 
