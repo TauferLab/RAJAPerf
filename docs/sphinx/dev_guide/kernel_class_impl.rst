@@ -298,9 +298,6 @@ A few details are worth noting:
     ``POLYBENCH_JACOBI_1D_2``. Single-body kernels use the ``_1`` suffix. For a
     variable number of launches, append ``_k`` instead, for example
     ``HALO_PACKING_pack_k`` or ``HALO_EXCHANGE_unpack_k``.
-  * Subkernel annotations around asynchronous GPU launches should not add
-    synchronization. GPU profiling should use CUDA or HIP events to measure GPU
-    time.
 
 All kernel source files follow a similar organization and implementation 
 pattern for each set of back-end execution variants. However, there are some
