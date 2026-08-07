@@ -64,15 +64,15 @@
       doOnceCaliMetaEnd(running_variant,running_tuning); \
     }
 
-#define RP_CALI_MARK_BEGIN(name) beginSubkernelCaliperRegion(name)
-#define RP_CALI_MARK_END(name) endSubkernelCaliperRegion()
+#define RP_CALI_SUBKERNEL_BEGIN(name) beginSubkernelCaliperRegion(name)
+#define RP_CALI_SUBKERNEL_END(name) endSubkernelCaliperRegion()
 
 #else
 
 #define CALI_START
 #define CALI_STOP
-#define RP_CALI_MARK_BEGIN(name)
-#define RP_CALI_MARK_END(name)
+#define RP_CALI_SUBKERNEL_BEGIN(name)
+#define RP_CALI_SUBKERNEL_END(name)
 
 #endif
 

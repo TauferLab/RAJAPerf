@@ -34,7 +34,7 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_1));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_1));
       #pragma omp target is_device_ptr(tmp,A,B) device( did )
       #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type i = 0; i < ni; i++ ) {
@@ -46,9 +46,9 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
           POLYBENCH_2MM_BODY3;
         }
       }
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_2MM_1));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_2MM_1));
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_2));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_2));
       #pragma omp target is_device_ptr(tmp,C,D) device( did )
       #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for(Index_type i = 0; i < ni; i++) {
@@ -60,7 +60,7 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
           POLYBENCH_2MM_BODY6;
         }
       }
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_2MM_2));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_2MM_2));
 
     }
     stopTimer();
@@ -87,7 +87,7 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_1));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_1));
       RAJA::kernel_param_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nj},
@@ -105,9 +105,9 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
           POLYBENCH_2MM_BODY3_RAJA;
         }
       );
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_2MM_1));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_2MM_1));
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_2));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_2MM_2));
       RAJA::kernel_param_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nl},
@@ -125,7 +125,7 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
           POLYBENCH_2MM_BODY6_RAJA;
         }
       );
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_2MM_2));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_2MM_2));
 
     }
     stopTimer();

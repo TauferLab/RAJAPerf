@@ -36,7 +36,7 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_ATAX_1));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ATAX_1));
         #pragma omp parallel for
         for (Index_type i = 0; i < N; ++i ) {
           POLYBENCH_ATAX_BODY1;
@@ -45,9 +45,9 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
           }
           POLYBENCH_ATAX_BODY3;
         }
-        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_ATAX_1));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ATAX_1));
 
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_ATAX_2));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ATAX_2));
         #pragma omp parallel for
         for (Index_type j = 0; j < N; ++j ) {
           POLYBENCH_ATAX_BODY4;
@@ -56,7 +56,7 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
           }
           POLYBENCH_ATAX_BODY6;
         }
-        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_ATAX_2));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ATAX_2));
 
       }
       stopTimer();
@@ -87,7 +87,7 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_ATAX_1));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ATAX_1));
         #pragma omp parallel for
         for (Index_type i = 0; i < N; ++i ) {
           POLYBENCH_ATAX_BODY1;
@@ -96,9 +96,9 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
           }
           poly_atax_base_lam3(i, dot);
         }
-        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_ATAX_1));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ATAX_1));
 
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_ATAX_2));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ATAX_2));
         #pragma omp parallel for
         for (Index_type j = 0; j < N; ++j ) {
           POLYBENCH_ATAX_BODY4;
@@ -107,7 +107,7 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
           }
           poly_atax_base_lam6(j, dot);
         }
-        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_ATAX_2));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ATAX_2));
 
       }
       stopTimer();
@@ -166,7 +166,7 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_ATAX_1));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ATAX_1));
         RAJA::kernel_param_resource<EXEC_POL1>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
@@ -178,9 +178,9 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
           poly_atax_lam3
 
         );
-        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_ATAX_1));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ATAX_1));
 
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_ATAX_2));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_ATAX_2));
         RAJA::kernel_param_resource<EXEC_POL2>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
@@ -192,7 +192,7 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
           poly_atax_lam6
 
         );
-        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_ATAX_2));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_ATAX_2));
 
       }
       stopTimer();

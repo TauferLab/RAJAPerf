@@ -57,7 +57,7 @@ void HALO_EXCHANGE_FUSED::runSeqVariantDirect(VariantID vid)
             buffer += len;
           }
         }
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_FUSED_pack));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_FUSED_pack));
         for (Index_type j = 0; j < pack_index; j++) {
           Real_ptr   buffer = pack_ptr_holders[j].buffer;
           Int_ptr    list   = pack_ptr_holders[j].list;
@@ -67,7 +67,7 @@ void HALO_EXCHANGE_FUSED::runSeqVariantDirect(VariantID vid)
             HALO_PACK_BODY;
           }
         }
-        RP_CALI_MARK_END(RP_CALI_REGION(HALO_EXCHANGE_FUSED_pack));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(HALO_EXCHANGE_FUSED_pack));
         if (separate_buffers) {
           for (Index_type l = 0; l < num_neighbors; ++l) {
             Index_type len = pack_index_list_lengths[l];
@@ -100,7 +100,7 @@ void HALO_EXCHANGE_FUSED::runSeqVariantDirect(VariantID vid)
             buffer += len;
           }
         }
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_FUSED_unpack));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_FUSED_unpack));
         for (Index_type j = 0; j < unpack_index; j++) {
           Real_ptr   buffer = unpack_ptr_holders[j].buffer;
           Int_ptr    list   = unpack_ptr_holders[j].list;
@@ -110,7 +110,7 @@ void HALO_EXCHANGE_FUSED::runSeqVariantDirect(VariantID vid)
             HALO_UNPACK_BODY;
           }
         }
-        RP_CALI_MARK_END(RP_CALI_REGION(HALO_EXCHANGE_FUSED_unpack));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(HALO_EXCHANGE_FUSED_unpack));
 
         MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 
@@ -151,7 +151,7 @@ void HALO_EXCHANGE_FUSED::runSeqVariantDirect(VariantID vid)
             buffer += len;
           }
         }
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_FUSED_pack));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_FUSED_pack));
         for (Index_type j = 0; j < pack_index; j++) {
           auto       pack_lambda = pack_lambdas[j];
           Index_type len         = pack_lens[j];
@@ -159,7 +159,7 @@ void HALO_EXCHANGE_FUSED::runSeqVariantDirect(VariantID vid)
             pack_lambda(i);
           }
         }
-        RP_CALI_MARK_END(RP_CALI_REGION(HALO_EXCHANGE_FUSED_pack));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(HALO_EXCHANGE_FUSED_pack));
         if (separate_buffers) {
           for (Index_type l = 0; l < num_neighbors; ++l) {
             Index_type len = pack_index_list_lengths[l];
@@ -192,7 +192,7 @@ void HALO_EXCHANGE_FUSED::runSeqVariantDirect(VariantID vid)
             buffer += len;
           }
         }
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_FUSED_unpack));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_FUSED_unpack));
         for (Index_type j = 0; j < unpack_index; j++) {
           auto       unpack_lambda = unpack_lambdas[j];
           Index_type len           = unpack_lens[j];
@@ -200,7 +200,7 @@ void HALO_EXCHANGE_FUSED::runSeqVariantDirect(VariantID vid)
             unpack_lambda(i);
           }
         }
-        RP_CALI_MARK_END(RP_CALI_REGION(HALO_EXCHANGE_FUSED_unpack));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(HALO_EXCHANGE_FUSED_unpack));
 
         MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 
@@ -294,9 +294,9 @@ void HALO_EXCHANGE_FUSED::runSeqVariantWorkGroup(VariantID vid)
           }
         }
         workgroup group_pack = pool_pack.instantiate();
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_FUSED_pack));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_FUSED_pack));
         worksite site_pack = group_pack.run(res);
-        RP_CALI_MARK_END(RP_CALI_REGION(HALO_EXCHANGE_FUSED_pack));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(HALO_EXCHANGE_FUSED_pack));
         if (separate_buffers) {
           for (Index_type l = 0; l < num_neighbors; ++l) {
             Index_type len = pack_index_list_lengths[l];
@@ -326,9 +326,9 @@ void HALO_EXCHANGE_FUSED::runSeqVariantWorkGroup(VariantID vid)
           }
         }
         workgroup group_unpack = pool_unpack.instantiate();
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_FUSED_unpack));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(HALO_EXCHANGE_FUSED_unpack));
         worksite site_unpack = group_unpack.run(res);
-        RP_CALI_MARK_END(RP_CALI_REGION(HALO_EXCHANGE_FUSED_unpack));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(HALO_EXCHANGE_FUSED_unpack));
 
         MPI_Waitall(num_neighbors, pack_mpi_requests.data(), MPI_STATUSES_IGNORE);
 

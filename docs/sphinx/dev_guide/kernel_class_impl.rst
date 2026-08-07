@@ -288,8 +288,8 @@ A few details are worth noting:
     compiled using the C++20 standard.
   * Kernels that execute multiple meaningful loop bodies or launch multiple
     kernels per repetition should mark each subkernel with
-    ``RP_CALI_MARK_BEGIN(RP_CALI_REGION(<name>))`` and
-    ``RP_CALI_MARK_END(RP_CALI_REGION(<name>))``. These macros add the Caliper
+    ``RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(<name>))`` and
+    ``RP_CALI_SUBKERNEL_END(RP_CALI_REGION(<name>))``. These macros add the Caliper
     ``subkernel`` attribute when Caliper support is enabled and compile away
     otherwise. Kernels with only one launch per repetition do not need a
     subkernel region.

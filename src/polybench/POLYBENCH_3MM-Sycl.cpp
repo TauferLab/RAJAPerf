@@ -61,7 +61,7 @@ void POLYBENCH_3MM::runSyclVariantImpl(VariantID vid)
 
       sycl::range<3> wkgroup_dim(1, out_wg_sz, in_wg_sz);
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_1));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_1));
       qu->submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<3>( global_dim1, wkgroup_dim),
                        [=] (sycl::nd_item<3> item) {
@@ -79,9 +79,9 @@ void POLYBENCH_3MM::runSyclVariantImpl(VariantID vid)
 
         });
       });
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_3MM_1));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_3MM_1));
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_2));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_2));
       qu->submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<3>( global_dim2, wkgroup_dim),
                        [=] (sycl::nd_item<3> item) {
@@ -99,9 +99,9 @@ void POLYBENCH_3MM::runSyclVariantImpl(VariantID vid)
 
         });
       });
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_3MM_2));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_3MM_2));
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_3));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_3));
       qu->submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<3>( global_dim3, wkgroup_dim),
                        [=] (sycl::nd_item<3> item) {
@@ -119,7 +119,7 @@ void POLYBENCH_3MM::runSyclVariantImpl(VariantID vid)
 
         });
       });
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_3MM_3));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_3MM_3));
 
     }
     stopTimer();
@@ -147,7 +147,7 @@ void POLYBENCH_3MM::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_1));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_1));
       RAJA::kernel_param_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nj},
@@ -168,9 +168,9 @@ void POLYBENCH_3MM::runSyclVariantImpl(VariantID vid)
         }
 
       );
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_3MM_1));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_3MM_1));
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_2));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_2));
       RAJA::kernel_param_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, nj},
                          RAJA::RangeSegment{0, nl},
@@ -191,9 +191,9 @@ void POLYBENCH_3MM::runSyclVariantImpl(VariantID vid)
         }
 
       );
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_3MM_2));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_3MM_2));
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_3));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_3MM_3));
       RAJA::kernel_param_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nl},
@@ -214,7 +214,7 @@ void POLYBENCH_3MM::runSyclVariantImpl(VariantID vid)
         }
 
       );
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_3MM_3));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_3MM_3));
 
     }
     stopTimer();

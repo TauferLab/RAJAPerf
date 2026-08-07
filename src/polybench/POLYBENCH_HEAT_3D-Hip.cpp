@@ -102,21 +102,21 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
       HEAT_3D_NBLOCKS_HIP;
       constexpr size_t shmem = 0;
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
       RPlaunchHipKernel(
         (poly_heat_3D_1<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
         nblocks, nthreads_per_block,
         shmem, res.get_stream(),
         A, B, N );
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
       RPlaunchHipKernel(
         (poly_heat_3D_2<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
         nblocks, nthreads_per_block,
         shmem, res.get_stream(),
         A, B, N );
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
 
     }
     stopTimer();
@@ -137,14 +137,14 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
         POLYBENCH_HEAT_3D_BODY1;
       };
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
       RPlaunchHipKernel(
         (poly_heat_3D_lam<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
                           decltype(poly_heat_3D_1_lambda)>),
         nblocks, nthreads_per_block,
         shmem, res.get_stream(),
         N, poly_heat_3D_1_lambda );
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
 
       auto poly_heat_3D_2_lambda = [=] __device__ (Index_type i,
                                                    Index_type j,
@@ -152,14 +152,14 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
         POLYBENCH_HEAT_3D_BODY2;
       };
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
       RPlaunchHipKernel(
         (poly_heat_3D_lam<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
                           decltype(poly_heat_3D_2_lambda)>),
         nblocks, nthreads_per_block,
         shmem, res.get_stream(),
         N, poly_heat_3D_2_lambda );
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
 
     }
     stopTimer();
@@ -185,7 +185,7 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
       RAJA::kernel_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                          RAJA::RangeSegment{1, N-1},
@@ -195,9 +195,9 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
           POLYBENCH_HEAT_3D_BODY1_RAJA;
         }
       );
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
 
-      RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
+      RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
       RAJA::kernel_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                          RAJA::RangeSegment{1, N-1},
@@ -207,7 +207,7 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
           POLYBENCH_HEAT_3D_BODY2_RAJA;
         }
       );
-      RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
+      RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
 
     }
     stopTimer();

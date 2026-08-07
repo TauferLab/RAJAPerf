@@ -73,12 +73,12 @@ void HALO_PACKING::runCudaVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_PACKING_pack_k));
+          RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(HALO_PACKING_pack_k));
           RPlaunchCudaKernel( (halo_packing_pack<block_size>),
                               nblocks, nthreads_per_block,
                               shmem, res.get_stream(),
                               buffer, list, var, len );
-          RP_CALI_MARK_END(RP_CALI_REGION(HALO_PACKING_pack_k));
+          RP_CALI_SUBKERNEL_END(RP_CALI_REGION(HALO_PACKING_pack_k));
           buffer += len;
         }
 
@@ -106,12 +106,12 @@ void HALO_PACKING::runCudaVariantImpl(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           constexpr size_t shmem = 0;
-          RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_PACKING_unpack_k));
+          RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(HALO_PACKING_unpack_k));
           RPlaunchCudaKernel( (halo_packing_unpack<block_size>),
                               nblocks, nthreads_per_block,
                               shmem, res.get_stream(),
                               buffer, list, var, len );
-          RP_CALI_MARK_END(RP_CALI_REGION(HALO_PACKING_unpack_k));
+          RP_CALI_SUBKERNEL_END(RP_CALI_REGION(HALO_PACKING_unpack_k));
           buffer += len;
         }
       }
@@ -137,11 +137,11 @@ void HALO_PACKING::runCudaVariantImpl(VariantID vid)
           auto halo_packing_pack_base_lam = [=] __device__ (Index_type i) {
                 HALO_PACK_BODY;
               };
-          RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_PACKING_pack_k));
+          RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(HALO_PACKING_pack_k));
           RAJA::forall<EXEC_POL>( res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
               halo_packing_pack_base_lam );
-          RP_CALI_MARK_END(RP_CALI_REGION(HALO_PACKING_pack_k));
+          RP_CALI_SUBKERNEL_END(RP_CALI_REGION(HALO_PACKING_pack_k));
           buffer += len;
         }
 
@@ -165,11 +165,11 @@ void HALO_PACKING::runCudaVariantImpl(VariantID vid)
           auto halo_packing_unpack_base_lam = [=] __device__ (Index_type i) {
                 HALO_UNPACK_BODY;
               };
-          RP_CALI_MARK_BEGIN(RP_CALI_REGION(HALO_PACKING_unpack_k));
+          RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(HALO_PACKING_unpack_k));
           RAJA::forall<EXEC_POL>( res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
               halo_packing_unpack_base_lam );
-          RP_CALI_MARK_END(RP_CALI_REGION(HALO_PACKING_unpack_k));
+          RP_CALI_SUBKERNEL_END(RP_CALI_REGION(HALO_PACKING_unpack_k));
           buffer += len;
         }
       }

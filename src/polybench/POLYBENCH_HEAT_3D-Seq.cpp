@@ -34,7 +34,7 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
             for (Index_type k = 1; k < N-1; ++k ) {
@@ -42,9 +42,9 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
             }
           }
         }
-        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
 
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
             for (Index_type k = 1; k < N-1; ++k ) {
@@ -52,7 +52,7 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
             }
           }
         }
-        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
 
       }
       stopTimer();
@@ -76,7 +76,7 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
             for (Index_type k = 1; k < N-1; ++k ) {
@@ -84,9 +84,9 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
             }
           }
         }
-        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
 
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
             for (Index_type k = 1; k < N-1; ++k ) {
@@ -94,7 +94,7 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
             }
           }
         }
-        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
 
       }
       stopTimer();
@@ -123,7 +123,7 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
         RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                            RAJA::RangeSegment{1, N-1},
@@ -135,9 +135,9 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
           }
 
         );
-        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_1));
 
-        RP_CALI_MARK_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
+        RP_CALI_SUBKERNEL_BEGIN(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
         RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                            RAJA::RangeSegment{1, N-1},
@@ -149,7 +149,7 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
           }
 
         );
-        RP_CALI_MARK_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
+        RP_CALI_SUBKERNEL_END(RP_CALI_REGION(POLYBENCH_HEAT_3D_2));
 
       }
       stopTimer();
