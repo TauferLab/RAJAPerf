@@ -41,6 +41,7 @@ void REDUCE_SUM::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
       Real_type sum = m_sum_init;
 
@@ -64,6 +65,7 @@ void REDUCE_SUM::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
       Real_type tsum = m_sum_init;
 

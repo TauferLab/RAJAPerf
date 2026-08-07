@@ -56,6 +56,7 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("PI_ATOMIC_1");
       RAJAPERF_HIP_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1, 1);
 
@@ -81,6 +82,7 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("PI_ATOMIC_1");
       RAJAPERF_HIP_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1, 1);
 
@@ -109,6 +111,7 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("PI_ATOMIC_1");
       RAJAPERF_HIP_REDUCER_INITIALIZE(&m_pi_init, pi, hpi, 1, 1);
 

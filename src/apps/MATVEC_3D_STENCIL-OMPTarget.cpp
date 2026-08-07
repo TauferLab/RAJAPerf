@@ -43,6 +43,7 @@ void MATVEC_3D_STENCIL::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("MATVEC_3D_STENCIL_1");
       #pragma omp target is_device_ptr(b, \
                                        dbl, dbc, dbr, dcl, dcc, dcr, dfl, dfc, dfr, \
@@ -72,6 +73,7 @@ void MATVEC_3D_STENCIL::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("MATVEC_3D_STENCIL_1");
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
         zones, [=](Index_type i) {

@@ -33,6 +33,7 @@ void MASS3DPA_ATOMIC::runSeqVariant(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep))
     {
+
       RP_CALI_SUBKERNEL_BEGIN("MASS3DPA_ATOMIC_1");
       for (Index_type e = 0; e < NE; ++e) {
 
@@ -99,6 +100,7 @@ void MASS3DPA_ATOMIC::runSeqVariant(VariantID vid) {
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("MASS3DPA_ATOMIC_1");
       //clang-format off
       RAJA::launch<launch_policy>( res,

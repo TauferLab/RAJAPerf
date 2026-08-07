@@ -33,6 +33,7 @@ void PI_ATOMIC::runKokkosVariant(VariantID vid) {
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("PI_ATOMIC_1");
       // Initializing a value, pi, on the host
       *pi = m_pi_init;

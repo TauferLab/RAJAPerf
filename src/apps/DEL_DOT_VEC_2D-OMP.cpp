@@ -40,6 +40,7 @@ void DEL_DOT_VEC_2D::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("DEL_DOT_VEC_2D_1");
         #pragma omp parallel for
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
@@ -64,6 +65,7 @@ void DEL_DOT_VEC_2D::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("DEL_DOT_VEC_2D_1");
         #pragma omp parallel for
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
@@ -91,6 +93,7 @@ void DEL_DOT_VEC_2D::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("DEL_DOT_VEC_2D_1");
         RAJA::forall<RAJA::omp_parallel_for_exec>(res, zones, deldotvec2d_lam);
         RP_CALI_SUBKERNEL_END("DEL_DOT_VEC_2D_1");

@@ -43,6 +43,7 @@ void EDGE3D::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("EDGE3D_1");
         #pragma omp parallel for
         for (Index_type i = ibegin ; i < iend ; ++i ) {
@@ -61,6 +62,7 @@ void EDGE3D::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("EDGE3D_1");
         #pragma omp parallel for
         for (Index_type i = ibegin ; i < iend ; ++i ) {
@@ -81,6 +83,7 @@ void EDGE3D::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("EDGE3D_1");
         RAJA::forall<RAJA::omp_parallel_for_exec>( res,
           RAJA::RangeSegment(ibegin, iend), edge3d_lam);

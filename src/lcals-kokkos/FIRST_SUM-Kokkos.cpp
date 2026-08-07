@@ -34,6 +34,7 @@ void FIRST_SUM::runKokkosVariant(VariantID vid) {
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("FIRST_SUM_1");
       Kokkos::parallel_for(
           "FIRST_SUM_Kokkos Kokkos_Lambda",

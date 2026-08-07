@@ -34,6 +34,7 @@ void DAXPY_ATOMIC::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("DAXPY_ATOMIC_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           DAXPY_ATOMIC_BODY(RAJAPERF_ATOMIC_ADD_SEQ);
@@ -56,6 +57,7 @@ void DAXPY_ATOMIC::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("DAXPY_ATOMIC_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           daxpy_atomic_lam(i);
@@ -75,6 +77,7 @@ void DAXPY_ATOMIC::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("DAXPY_ATOMIC_1");
         RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend),

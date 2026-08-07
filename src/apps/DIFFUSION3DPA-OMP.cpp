@@ -33,6 +33,7 @@ void DIFFUSION3DPA::runOpenMPVariant(VariantID vid) {
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
 RP_CALI_SUBKERNEL_BEGIN("DIFFUSION3DPA_1");
 #pragma omp parallel for
       for (Index_type e = 0; e < NE; ++e) {
@@ -134,6 +135,7 @@ RP_CALI_SUBKERNEL_END("DIFFUSION3DPA_1");
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("DIFFUSION3DPA_1");
       // Grid is empty as the host does not need a compute grid to be specified
       //clang-format off

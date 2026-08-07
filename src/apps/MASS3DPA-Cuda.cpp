@@ -105,6 +105,7 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("MASS3DPA_1");
       dim3 nthreads_per_block(mpa::Q1D, mpa::Q1D, 1);
       constexpr size_t shmem = 0;
@@ -135,6 +136,7 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("MASS3DPA_1");
       //clang-format off
       RAJA::launch<launch_policy>( res,

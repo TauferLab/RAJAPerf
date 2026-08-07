@@ -40,6 +40,7 @@ void HYDRO_1D::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("HYDRO_1D_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           HYDRO_1D_BODY;
@@ -58,6 +59,7 @@ void HYDRO_1D::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("HYDRO_1D_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           hydro1d_lam(i);
@@ -77,6 +79,7 @@ void HYDRO_1D::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("HYDRO_1D_1");
         RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend), hydro1d_lam);

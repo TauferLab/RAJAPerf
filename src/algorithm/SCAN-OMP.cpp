@@ -42,6 +42,7 @@ void SCAN::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("SCAN_1");
         SCAN_PROLOGUE;
 
@@ -117,6 +118,8 @@ void SCAN::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+
         RP_CALI_SUBKERNEL_BEGIN("SCAN_1");
         SCAN_PROLOGUE;
 
@@ -171,6 +174,7 @@ void SCAN::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("SCAN_1");
         RAJA::exclusive_scan<RAJA::omp_parallel_for_exec>(res, RAJA_SCAN_ARGS);
         RP_CALI_SUBKERNEL_END("SCAN_1");

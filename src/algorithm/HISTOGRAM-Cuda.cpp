@@ -119,6 +119,7 @@ void HISTOGRAM::runCudaVariantLibrary(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("HISTOGRAM_1");
       // Run
       CAMP_CUDA_API_INVOKE_AND_CHECK(::cub::DeviceHistogram::HistogramEven,
@@ -190,6 +191,7 @@ void HISTOGRAM::runCudaVariantAtomicRuntime(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("HISTOGRAM_1");
       RAJAPERF_CUDA_REDUCER_INITIALIZE(counts_init, counts, hcounts, num_bins, global_replication);
 
@@ -242,6 +244,7 @@ void HISTOGRAM::runCudaVariantAtomicRuntime(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("HISTOGRAM_1");
       HISTOGRAM_INIT_COUNTS_RAJA(multi_reduce_policy);
 

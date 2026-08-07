@@ -129,6 +129,7 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
       // Run
       CAMP_CUDA_API_INVOKE_AND_CHECK(::cub::DeviceReduce::Reduce,
@@ -182,6 +183,7 @@ void REDUCE_SUM::runCudaVariantBase(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
       RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_sum_init, sum, hsum, 1, 1);
 
@@ -236,6 +238,7 @@ void REDUCE_SUM::runCudaVariantRAJA(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
       RAJA::ReduceSum<reduction_policy, Real_type> sum(m_sum_init);
 
@@ -280,6 +283,7 @@ void REDUCE_SUM::runCudaVariantRAJANewReduce(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
       Real_type tsum = m_sum_init;
 

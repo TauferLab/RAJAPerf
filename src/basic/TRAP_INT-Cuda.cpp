@@ -85,6 +85,7 @@ void TRAP_INT::runCudaVariantBase(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("TRAP_INT_1");
       RAJAPERF_CUDA_REDUCER_INITIALIZE(&m_sumx_init, sumx, hsumx, 1, 1);
 
@@ -140,6 +141,7 @@ void TRAP_INT::runCudaVariantRAJA(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("TRAP_INT_1");
       RAJA::ReduceSum<reduction_policy, Real_type> sumx(m_sumx_init);
 
@@ -181,6 +183,7 @@ void TRAP_INT::runCudaVariantRAJANewReduce(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("TRAP_INT_1");
       Real_type tsumx = m_sumx_init;
 

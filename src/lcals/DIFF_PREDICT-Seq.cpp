@@ -40,6 +40,7 @@ void DIFF_PREDICT::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("DIFF_PREDICT_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           DIFF_PREDICT_BODY;
@@ -58,6 +59,7 @@ void DIFF_PREDICT::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("DIFF_PREDICT_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           diffpredict_lam(i);
@@ -77,6 +79,7 @@ void DIFF_PREDICT::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("DIFF_PREDICT_1");
         RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend), diffpredict_lam);

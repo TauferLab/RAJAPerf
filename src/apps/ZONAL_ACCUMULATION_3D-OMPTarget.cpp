@@ -43,6 +43,7 @@ void ZONAL_ACCUMULATION_3D::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("ZONAL_ACCUMULATION_3D_1");
       #pragma omp target is_device_ptr(x0,x1,x2,x3,x4,x5,x6,x7, \
                                        vol, real_zones) device( did )
@@ -66,6 +67,7 @@ void ZONAL_ACCUMULATION_3D::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("ZONAL_ACCUMULATION_3D_1");
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>( res,
         zones, [=](Index_type i) {

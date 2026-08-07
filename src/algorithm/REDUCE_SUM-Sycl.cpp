@@ -45,6 +45,7 @@ void REDUCE_SUM::runSyclVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
       const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
@@ -80,6 +81,7 @@ void REDUCE_SUM::runSyclVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
        RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
        Real_type tsum = m_sum_init;
 

@@ -168,6 +168,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
       // Run
 #if defined(__HIPCC__)
@@ -232,6 +233,7 @@ void REDUCE_SUM::runHipVariantBase(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
       RAJAPERF_HIP_REDUCER_INITIALIZE(&m_sum_init, sum, hsum, 1, 1);
 
@@ -286,6 +288,7 @@ void REDUCE_SUM::runHipVariantRAJA(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
       RAJA::ReduceSum<reduction_policy, Real_type> sum(m_sum_init);
 
@@ -330,6 +333,7 @@ void REDUCE_SUM::runHipVariantRAJANewReduce(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("REDUCE_SUM_1");
       Real_type tsum = m_sum_init;
 

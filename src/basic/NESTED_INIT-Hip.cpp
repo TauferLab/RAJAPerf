@@ -88,6 +88,7 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
       NESTED_INIT_THREADS_PER_BLOCK_HIP;
       NESTED_INIT_NBLOCKS_HIP;
@@ -108,6 +109,7 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
       auto nested_init_lambda = [=] __device__ (Index_type i, 
                                                 Index_type j,
@@ -150,6 +152,7 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("NESTED_INIT_1");
       RAJA::kernel_resource<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment(0, ni),

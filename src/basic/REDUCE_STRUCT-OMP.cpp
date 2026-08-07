@@ -38,6 +38,7 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("REDUCE_STRUCT_1");
         Real_type xsum = m_init_sum; Real_type ysum = m_init_sum;
         Real_type xmin = m_init_min; Real_type ymin = m_init_min;
@@ -80,6 +81,7 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("REDUCE_STRUCT_1");
         Real_type xsum = m_init_sum; Real_type ysum = m_init_sum;
         Real_type xmin = m_init_min; Real_type ymin = m_init_min;
@@ -123,6 +125,7 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid)
         startTimer();
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
           RP_CALI_SUBKERNEL_BEGIN("REDUCE_STRUCT_1");
           RAJA::ReduceSum<RAJA::omp_reduce, Real_type> xsum(m_init_sum);
           RAJA::ReduceSum<RAJA::omp_reduce, Real_type> ysum(m_init_sum);
@@ -153,6 +156,7 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid)
         startTimer();
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
           RP_CALI_SUBKERNEL_BEGIN("REDUCE_STRUCT_1");
           Real_type txsum = m_init_sum;
           Real_type tysum = m_init_sum;

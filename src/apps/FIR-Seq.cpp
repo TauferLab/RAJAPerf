@@ -46,6 +46,7 @@ void FIR::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("FIR_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
           FIR_BODY;
@@ -64,6 +65,7 @@ void FIR::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("FIR_1");
         for (Index_type i = ibegin; i < iend; ++i ) {
            fir_lam(i);
@@ -83,6 +85,7 @@ void FIR::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("FIR_1");
         RAJA::forall<RAJA::seq_exec>( res,
           RAJA::RangeSegment(ibegin, iend), fir_lam);

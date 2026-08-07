@@ -136,6 +136,7 @@ void HISTOGRAM::runHipVariantLibrary(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("HISTOGRAM_1");
       // Run
 #if defined(__HIPCC__)
@@ -219,6 +220,7 @@ void HISTOGRAM::runHipVariantAtomicRuntime(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("HISTOGRAM_1");
       RAJAPERF_HIP_REDUCER_INITIALIZE(counts_init, counts, hcounts, num_bins, global_replication);
 
@@ -271,6 +273,7 @@ void HISTOGRAM::runHipVariantAtomicRuntime(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("HISTOGRAM_1");
       HISTOGRAM_INIT_COUNTS_RAJA(multi_reduce_policy);
 

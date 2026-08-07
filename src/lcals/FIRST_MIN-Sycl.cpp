@@ -55,6 +55,7 @@ void FIRST_MIN::runSyclVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("FIRST_MIN_1");
       const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
 
@@ -92,6 +93,7 @@ void FIRST_MIN::runSyclVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
        RP_CALI_SUBKERNEL_BEGIN("FIRST_MIN_1");
        RAJA::expt::ValLoc<Real_type, Index_type> tminloc(m_xmin_init,
                                                          m_initloc);

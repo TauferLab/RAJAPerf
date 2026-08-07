@@ -39,6 +39,7 @@ void TRAP_INT::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("TRAP_INT_1");
         Real_type sumx = m_sumx_init;
 
@@ -66,6 +67,7 @@ void TRAP_INT::runOpenMPVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("TRAP_INT_1");
         Real_type sumx = m_sumx_init;
 
@@ -92,6 +94,7 @@ void TRAP_INT::runOpenMPVariant(VariantID vid)
         startTimer();
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
           RP_CALI_SUBKERNEL_BEGIN("TRAP_INT_1");
           RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sumx(m_sumx_init);
 
@@ -111,6 +114,7 @@ void TRAP_INT::runOpenMPVariant(VariantID vid)
         startTimer();
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
           RP_CALI_SUBKERNEL_BEGIN("TRAP_INT_1");
           Real_type tsumx = m_sumx_init;
 

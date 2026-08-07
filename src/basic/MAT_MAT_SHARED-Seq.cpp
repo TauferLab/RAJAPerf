@@ -29,6 +29,7 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("MAT_MAT_SHARED_1");
       for (Index_type by = 0; by < Ny; ++by) {
         for (Index_type bx = 0; bx < Nx; ++bx) {
@@ -80,6 +81,7 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("MAT_MAT_SHARED_1");
       auto outer_y = [&](Index_type by) {
         auto outer_x = [&](Index_type bx) {
@@ -173,6 +175,7 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("MAT_MAT_SHARED_1");
       //Grid is empty as the host does not need a compute grid to be specified
       RAJA::launch<launch_policy>( res,

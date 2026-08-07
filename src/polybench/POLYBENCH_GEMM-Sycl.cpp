@@ -52,6 +52,7 @@ void POLYBENCH_GEMM::runSyclVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMM_1");
       qu->submit([&] (sycl::handler& h) {
         h.parallel_for(sycl::nd_range<3>( global_dim, wkgroup_dim),
@@ -99,6 +100,7 @@ void POLYBENCH_GEMM::runSyclVariantImpl(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMM_1");
         RAJA::kernel_param_resource<EXEC_POL>(
 

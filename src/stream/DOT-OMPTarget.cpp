@@ -42,6 +42,7 @@ void DOT::runOpenMPTargetVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("DOT_1");
         Real_type dot = m_dot_init;
 
@@ -68,6 +69,7 @@ void DOT::runOpenMPTargetVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("DOT_1");
         Real_type tdot = m_dot_init;
 

@@ -37,6 +37,7 @@ void FIRST_MIN::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("FIRST_MIN_1");
         FIRST_MIN_MINLOC_INIT;
 
@@ -63,6 +64,7 @@ void FIRST_MIN::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("FIRST_MIN_1");
         FIRST_MIN_MINLOC_INIT;
 
@@ -91,6 +93,7 @@ void FIRST_MIN::runSeqVariant(VariantID vid)
         startTimer();
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
           RP_CALI_SUBKERNEL_BEGIN("FIRST_MIN_1");
           RAJA::ReduceMinLoc<RAJA::seq_reduce,
                              Real_type, Index_type> minloc(m_xmin_init,
@@ -112,6 +115,7 @@ void FIRST_MIN::runSeqVariant(VariantID vid)
         startTimer();
         // Loop counter increment uses macro to quiet C++20 compiler warning
         for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
           RP_CALI_SUBKERNEL_BEGIN("FIRST_MIN_1");
           RAJA::expt::ValLoc<Real_type, Index_type> tminloc(m_xmin_init,
                                                             m_initloc);

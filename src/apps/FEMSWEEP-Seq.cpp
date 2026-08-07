@@ -32,6 +32,7 @@ void FEMSWEEP::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("FEMSWEEP_1");
         for (Index_type a = 0; a < na; ++a)
         {
@@ -77,6 +78,7 @@ void FEMSWEEP::runSeqVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("FEMSWEEP_1");
         RAJA::launch<launch_policy>( res,
             RAJA::LaunchParams(),

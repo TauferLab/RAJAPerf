@@ -33,6 +33,7 @@ void POLYBENCH_GEMM::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMM_1");
       #pragma omp target is_device_ptr(A,B,C) device( did )
       #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
@@ -73,6 +74,7 @@ void POLYBENCH_GEMM::runOpenMPTargetVariant(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMM_1");
         RAJA::kernel_param_resource<EXEC_POL>(
 
