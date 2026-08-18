@@ -41,7 +41,6 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
         for (Index_type i = 0; i < ni; ++i ) {
           for (Index_type j = 0; j < nj; ++j ) {
             POLYBENCH_GEMM_BODY1;
-            POLYBENCH_GEMM_BODY2;
             for (Index_type k = 0; k < nk; ++k ) {
               POLYBENCH_GEMM_BODY3;
             }
@@ -58,14 +57,11 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
 
     case Lambda_OpenMP : {
 
-      auto poly_gemm_base_lam2 = [=](Index_type i, Index_type j) {
-                                   POLYBENCH_GEMM_BODY2;
-                                 };
-      auto poly_gemm_base_lam3 = [=](Index_type i, Index_type j, Index_type k,
+      auto poly_gemm_base_lam2 = [=](Index_type i, Index_type j, Index_type k,
                                      Real_type& dot) {
                                    POLYBENCH_GEMM_BODY3;
                                   };
-      auto poly_gemm_base_lam4 = [=](Index_type i, Index_type j,
+      auto poly_gemm_base_lam3 = [=](Index_type i, Index_type j,
                                      Real_type& dot) {
                                    POLYBENCH_GEMM_BODY4;
                                   };
@@ -79,11 +75,10 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
         for (Index_type i = 0; i < ni; ++i ) {
           for (Index_type j = 0; j < nj; ++j ) {
             POLYBENCH_GEMM_BODY1;
-            poly_gemm_base_lam2(i, j);
             for (Index_type k = 0; k < nk; ++k ) {
-              poly_gemm_base_lam3(i, j, k, dot);
+              poly_gemm_base_lam2(i, j, k, dot);
             }
-            poly_gemm_base_lam4(i, j, dot);
+            poly_gemm_base_lam3(i, j, dot);
           }
         }
         RP_CALI_SUBKERNEL_END("POLYBENCH_GEMM_1");
@@ -103,14 +98,11 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
       auto poly_gemm_lam1 = [=](Real_type& dot) {
                                 POLYBENCH_GEMM_BODY1_RAJA;
                                };
-      auto poly_gemm_lam2 = [=](Index_type i, Index_type j) {
-                                POLYBENCH_GEMM_BODY2_RAJA;
-                               };
-      auto poly_gemm_lam3 = [=](Index_type i, Index_type j, Index_type k,
+      auto poly_gemm_lam2 = [=](Index_type i, Index_type j, Index_type k,
                                 Real_type& dot) {
                                 POLYBENCH_GEMM_BODY3_RAJA;
                                };
-      auto poly_gemm_lam4 = [=](Index_type i, Index_type j,
+      auto poly_gemm_lam3 = [=](Index_type i, Index_type j,
                                 Real_type& dot) {
                                 POLYBENCH_GEMM_BODY4_RAJA;
                                };
@@ -120,11 +112,10 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
           RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
                                     RAJA::ArgList<0, 1>,
             RAJA::statement::Lambda<0, RAJA::Params<0>>,
-            RAJA::statement::Lambda<1, RAJA::Segs<0,1>>,
             RAJA::statement::For<2, RAJA::seq_exec,
-              RAJA::statement::Lambda<2, RAJA::Segs<0,1,2>, RAJA::Params<0>>
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
             >,
-            RAJA::statement::Lambda<3, RAJA::Segs<0,1>, RAJA::Params<0>>
+            RAJA::statement::Lambda<2, RAJA::Segs<0,1>, RAJA::Params<0>>
           >
         >;
 
@@ -143,8 +134,7 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
 
           poly_gemm_lam1,
           poly_gemm_lam2,
-          poly_gemm_lam3,
-          poly_gemm_lam4
+          poly_gemm_lam3
 
         );
         RP_CALI_SUBKERNEL_END("POLYBENCH_GEMM_1");

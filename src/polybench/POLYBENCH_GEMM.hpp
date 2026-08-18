@@ -12,15 +12,12 @@
 ///
 /// Note: The dot product is initialized to 0 to avoid
 ///       excessively large checksums
-/// Note: The compiler should optimize out "C[i][j] *= beta" below as C[i][j] is
-///       overwritten further down, so the answer does not depend on beta
 ///
 /// for (Index_type i = 0; i < NI; i++) {
 ///   for (Index_type j = 0; j < NJ; j++) {
-///     C[i][j] *= beta;
 ///     double dot = 0.0;
 ///     for (Index_type k = 0; k < NK; k++) {
-///       dot += alpha * A[i][k] * B[k][j];
+///       dot += A[i][k] * B[k][j];
 ///     }
 ///     C[i][j] = dot;
 ///   }
@@ -35,9 +32,6 @@
   const Index_type nj = m_nj; \
   const Index_type nk = m_nk; \
 \
-  Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; \
-\
   Real_ptr A = m_A; \
   Real_ptr B = m_B; \
   Real_ptr C = m_C;
@@ -46,11 +40,8 @@
 #define POLYBENCH_GEMM_BODY1 \
   Real_type dot = 0.0;
 
-#define POLYBENCH_GEMM_BODY2 \
-  C[j + i*nj] *= beta;
-
 #define POLYBENCH_GEMM_BODY3 \
-  dot += alpha * A[k + i*nk] * B[j + k*nj];
+  dot += A[k + i*nk] * B[j + k*nj];
 
 #define POLYBENCH_GEMM_BODY4 \
   C[j + i*nj] = dot;
@@ -59,11 +50,8 @@
 #define POLYBENCH_GEMM_BODY1_RAJA \
   dot = 0.0;
 
-#define POLYBENCH_GEMM_BODY2_RAJA \
-  Cview(i, j) *= beta;
-
 #define POLYBENCH_GEMM_BODY3_RAJA \
-  dot += alpha * Aview(i, k) * Bview(k, j);
+  dot += Aview(i, k) * Bview(k, j);
 
 #define POLYBENCH_GEMM_BODY4_RAJA \
   Cview(i, j) = dot;
@@ -134,8 +122,6 @@ private:
   Index_type m_nj;
   Index_type m_nk;
 
-  Real_type m_alpha;
-  Real_type m_beta;
   Real_ptr m_A;
   Real_ptr m_B;
   Real_ptr m_C;

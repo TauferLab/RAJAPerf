@@ -63,7 +63,6 @@ void POLYBENCH_GEMM::runSyclVariantImpl(VariantID vid)
 
           if (i < ni && j < nj) {
             POLYBENCH_GEMM_BODY1;
-            POLYBENCH_GEMM_BODY2;
             for (Index_type k = 0; k < nk; ++k) {
               POLYBENCH_GEMM_BODY3;
             }
@@ -87,11 +86,10 @@ void POLYBENCH_GEMM::runSyclVariantImpl(VariantID vid)
           RAJA::statement::For<0, RAJA::sycl_global_1<i_wg_sz>,
             RAJA::statement::For<1, RAJA::sycl_global_2<j_wg_sz>,
               RAJA::statement::Lambda<0, RAJA::Params<0>>,
-              RAJA::statement::Lambda<1, RAJA::Segs<0,1>>,
               RAJA::statement::For<2, RAJA::seq_exec,
-                RAJA::statement::Lambda<2, RAJA::Segs<0,1,2>, RAJA::Params<0>>
+                RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
               >,
-              RAJA::statement::Lambda<3, RAJA::Segs<0,1>, RAJA::Params<0>>
+              RAJA::statement::Lambda<2, RAJA::Segs<0,1>, RAJA::Params<0>>
             >
           >
         >
@@ -112,9 +110,6 @@ void POLYBENCH_GEMM::runSyclVariantImpl(VariantID vid)
 
           [=] (Real_type& dot) {
             POLYBENCH_GEMM_BODY1_RAJA;
-          },
-          [=] (Index_type i, Index_type j) {
-            POLYBENCH_GEMM_BODY2_RAJA;
           },
           [=] (Index_type i, Index_type j, Index_type k,
                Real_type& dot) {
@@ -141,4 +136,3 @@ RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_GEMM, Sycl, Base_SYC
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_SYCL
-

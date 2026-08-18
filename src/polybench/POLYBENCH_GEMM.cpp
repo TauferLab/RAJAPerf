@@ -29,9 +29,6 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   setDefaultProblemSize( m_ni_default * m_nj_default );
   setDefaultReps(4);
 
-  m_alpha = 0.62;
-  m_beta = 1.002;
-
   setSize(params.getTargetSize(getDefaultProblemSize()),
           params.getReps(getDefaultReps()));
 
@@ -68,8 +65,7 @@ void POLYBENCH_GEMM::setSize(Index_type target_size, Index_type target_reps)
   setBytesWrittenPerRep( 1*sizeof(Real_type) * m_ni * m_nj); // C
   setBytesModifyWrittenPerRep( 0 );
   setBytesAtomicModifyWrittenPerRep( 0 );
-  setFLOPsPerRep((1 +
-                  3 * m_nk) * m_ni*m_nj);
+  setFLOPsPerRep(2 * m_nk * m_ni*m_nj);
 }
 
 POLYBENCH_GEMM::~POLYBENCH_GEMM()

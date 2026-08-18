@@ -43,7 +43,6 @@ namespace polybench
 template < size_t j_block_size, size_t i_block_size >
 __launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_gemm(Real_ptr C, Real_ptr A, Real_ptr B,
-                          Real_type alpha, Real_type beta,
                           Index_type ni, Index_type nj, Index_type nk)
 {
   Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -51,7 +50,6 @@ __global__ void poly_gemm(Real_ptr C, Real_ptr A, Real_ptr B,
 
   if ( i < ni && j < nj ) {
     POLYBENCH_GEMM_BODY1;
-    POLYBENCH_GEMM_BODY2;
     for (Index_type k = 0; k < nk; ++k ) {
       POLYBENCH_GEMM_BODY3;
     }
@@ -100,7 +98,6 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
           nblocks, nthreads_per_block,
           shmem, res.get_stream(),
           C, A, B,
-          alpha, beta,
           ni, nj, nk );
       RP_CALI_SUBKERNEL_END("POLYBENCH_GEMM_1");
 
@@ -120,7 +117,6 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
 
       auto poly_gemm_lambda = [=] __device__ (Index_type i, Index_type j) {
         POLYBENCH_GEMM_BODY1;
-        POLYBENCH_GEMM_BODY2;
         for (Index_type k = 0; k < nk; ++k ) {
           POLYBENCH_GEMM_BODY3;
         }
@@ -148,11 +144,10 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
           RAJA::statement::For<0, RAJA::hip_global_size_y_direct<i_block_sz>,   // i
             RAJA::statement::For<1, RAJA::hip_global_size_x_direct<j_block_sz>, // j
               RAJA::statement::Lambda<0, RAJA::Params<0>>,
-              RAJA::statement::Lambda<1, RAJA::Segs<0,1>>,
               RAJA::statement::For<2, RAJA::seq_exec,           // k
-                RAJA::statement::Lambda<2, RAJA::Segs<0,1,2>, RAJA::Params<0>>
+                RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
               >,
-              RAJA::statement::Lambda<3, RAJA::Segs<0,1>, RAJA::Params<0>>
+              RAJA::statement::Lambda<2, RAJA::Segs<0,1>, RAJA::Params<0>>
             >
           >
         >
@@ -173,9 +168,6 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
 
           [=] __device__ (Real_type& dot) {
             POLYBENCH_GEMM_BODY1_RAJA;
-          },
-          [=] __device__ (Index_type i, Index_type j) {
-            POLYBENCH_GEMM_BODY2_RAJA;
           },
           [=] __device__ (Index_type i, Index_type j, Index_type k,
                           Real_type& dot) {
@@ -202,4 +194,3 @@ RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_GEMM, Hip, Base_HIP,
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_HIP
-
