@@ -76,9 +76,6 @@ void POLYBENCH_HEAT_3D::runKokkosVariant(VariantID vid) {
       Kokkos::fence();
       stopTimer();
 
-      moveDataToHostFromKokkosView(A, A_view, N, N, N);
-      moveDataToHostFromKokkosView(B, B_view, N, N, N);
-
       break;
     }
 
@@ -86,6 +83,9 @@ void POLYBENCH_HEAT_3D::runKokkosVariant(VariantID vid) {
       std::cout << "\n  POLYBENCH_HEAT_3D : Unknown variant id = " << vid
                 << std::endl;
     }
+
+    moveDataToHostFromKokkosView(A, A_view, N, N, N);
+    moveDataToHostFromKokkosView(B, B_view, N, N, N);
   }
 }
 

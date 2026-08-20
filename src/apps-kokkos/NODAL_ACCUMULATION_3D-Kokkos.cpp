@@ -22,7 +22,6 @@ namespace apps
 void NODAL_ACCUMULATION_3D::runKokkosVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize(); //m_domain->n_real_zones;
 
   NODAL_ACCUMULATION_3D_DATA_SETUP;
