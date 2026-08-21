@@ -60,9 +60,6 @@ void POLYBENCH_JACOBI_1D::runKokkosVariant(VariantID vid) {
       Kokkos::fence();
       stopTimer();
 
-      moveDataToHostFromKokkosView(A, A_view, N);
-      moveDataToHostFromKokkosView(B, B_view, N);
-
       break;
     }
 
@@ -71,6 +68,9 @@ void POLYBENCH_JACOBI_1D::runKokkosVariant(VariantID vid) {
                 << std::endl;
     }
   }
+
+  moveDataToHostFromKokkosView(A, A_view, N);
+  moveDataToHostFromKokkosView(B, B_view, N);
 }
 
 RAJAPERF_DEFAULT_TUNING_DEFINE_BOILERPLATE(POLYBENCH_JACOBI_1D, Kokkos, Kokkos_Lambda)
