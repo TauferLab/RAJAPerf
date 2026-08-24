@@ -31,6 +31,7 @@ void MAT_MAT::runSeqVariant(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("BASIC_MAT_MAT_1");
       for (Index_type by = 0; by < Ny; ++by) {
         for (Index_type bx = 0; bx < Nx; ++bx) {
 
@@ -48,6 +49,7 @@ void MAT_MAT::runSeqVariant(VariantID vid) {
           }
         }
       }
+      RP_CALI_SUBKERNEL_END("BASIC_MAT_MAT_1");
 
     } // number of iterations
     stopTimer();
@@ -62,6 +64,7 @@ void MAT_MAT::runSeqVariant(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("BASIC_MAT_MAT_1");
       auto outer_y = [&](Index_type by) {
         auto outer_x = [&](Index_type bx) {
 
@@ -97,6 +100,7 @@ void MAT_MAT::runSeqVariant(VariantID vid) {
       for (Index_type by = 0; by < Ny; ++by) {
         outer_y(by);
       }
+      RP_CALI_SUBKERNEL_END("BASIC_MAT_MAT_1");
 
     } // irep
     stopTimer();
@@ -122,6 +126,7 @@ void MAT_MAT::runSeqVariant(VariantID vid) {
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("BASIC_MAT_MAT_1");
       //Grid is empty as the host does not need a compute grid to be specified
       RAJA::launch<launch_policy>( res,
         RAJA::LaunchParams(),
@@ -156,6 +161,7 @@ void MAT_MAT::runSeqVariant(VariantID vid) {
 
         }  // outer lambda (ctx)
       );  // RAJA::launch
+      RP_CALI_SUBKERNEL_END("BASIC_MAT_MAT_1");
 
     }  // loop over kernel reps
     stopTimer();

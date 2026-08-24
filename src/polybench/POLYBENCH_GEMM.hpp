@@ -57,33 +57,13 @@
   Cview(i, j) = dot;
 
 
-// Single-lambda RAJA form. Here the inner reduction runs as an ordinary
-// sequential loop inside one lambda, so the accumulator is a lambda-local
-// variable rather than a RAJA::Params entry. Unlike the POLYBENCH_GEMM_BODY1_RAJA above,
-// which assign to an accumulator the RAJA::kernel_param machinery owns, these
-// declare it.
-
 #define POLYBENCH_GEMM_BODY1_RAJA_LOCAL \
   Real_type dot = 0.0;
 
 
-// Unroll factor applied to the inner sequential reduction in the RAJA_CUDA /
-// RAJA_HIP variants. Set explicitly so both toolchains unroll identically:
-// ptxas unrolls these loops on its own, the LLVM AMDGPU backend does not, and
-// that asymmetry is a confounder in the AMD-vs-NVIDIA comparison.
-//
 // NOTE: deliberately not RAJAPERF_UNROLL / RAJA_UNROLL_COUNT. Those lower to
 // "#pragma GCC unroll" under nvcc + gcc, which nvcc's device compiler ignores,
 // so they would unroll the AMD side only.
-//
-// 8 chosen by sweeping 1/2/4/8/16 on both machines: each target's runtime
-// bottoms out at 8 and regresses at 16, so it is the joint optimum rather than
-// a compromise.  Note that ptxas's own choice (4) is *not* optimal here -- at 4
-// the H100 gives up memory-level parallelism it can still afford, even though
-// unrolling costs it occupancy (REG 48 -> 62.5% at 4, REG 56 -> 50% at 8).
-// MI300A holds 8 waves/SIMD across the whole range, so only the NVIDIA side
-// trades occupancy for MLP.  Neither target spills at 8, and the checksum is
-// bitwise identical at every factor.
 
 #ifndef POLYBENCH_GEMM_GPU_UNROLL
 #define POLYBENCH_GEMM_GPU_UNROLL 8

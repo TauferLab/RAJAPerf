@@ -78,9 +78,6 @@ void POLYBENCH_GESUMMV::runCudaVariantImpl(VariantID vid)
 
     POLYBENCH_GESUMMV_VIEWS_RAJA;
 
-    // One lambda, with the j-reduction written as an ordinary sequential loop
-    // inside it -- the same shape as poly_gesummv above, rather than a
-    // RAJA::statement::For<seq_exec> around a separate lambda.
     using EXEC_POL = RAJA::cuda_exec<block_size, true /*async*/>;
 
       startTimer();

@@ -138,10 +138,6 @@ void POLYBENCH_GEMM::runCudaVariantImpl(VariantID vid)
 
     POLYBENCH_GEMM_VIEWS_RAJA;
 
-    // One lambda, with the k-reduction written as an ordinary sequential loop
-    // inside it -- the same shape as poly_gemm above, rather than a
-    // RAJA::statement::For<seq_exec> around a separate lambda.  The i/j thread
-    // mapping is unchanged.
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelFixedAsync<i_block_sz * j_block_sz,

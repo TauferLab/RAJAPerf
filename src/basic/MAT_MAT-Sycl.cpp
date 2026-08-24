@@ -49,6 +49,7 @@ void MAT_MAT::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("BASIC_MAT_MAT_1");
       qu->submit([&](::sycl::handler& h) {
 
         //No local accessors are needed as nothing is shared between
@@ -75,7 +76,7 @@ void MAT_MAT::runSyclVariantImpl(VariantID vid)
            });
 
       });
-
+      RP_CALI_SUBKERNEL_END("BASIC_MAT_MAT_1");
 
     }
     stopTimer();
@@ -98,6 +99,7 @@ void MAT_MAT::runSyclVariantImpl(VariantID vid)
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
+      RP_CALI_SUBKERNEL_BEGIN("BASIC_MAT_MAT_1");
       RAJA::launch<launch_policy>( res,
         RAJA::LaunchParams(RAJA::Teams(Nx, Ny),
                            RAJA::Threads(tile_size, tile_size)),
@@ -132,6 +134,7 @@ void MAT_MAT::runSyclVariantImpl(VariantID vid)
 
         }   // outer lambda (ctx)
       );  // RAJA::launch
+      RP_CALI_SUBKERNEL_END("BASIC_MAT_MAT_1");
 
     }  // loop over kernel reps
     stopTimer();

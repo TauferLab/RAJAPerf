@@ -265,10 +265,6 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
         >
       >;
 
-    // Launches 2 and 4 now use one lambda each, with the inner reduction
-    // written as an ordinary sequential loop inside it -- the same shape as
-    // poly_gemver_2/poly_gemver_3 above, rather than a
-    // RAJA::statement::For<seq_exec> around a separate lambda.
     using EXEC_POL3 = RAJA::cuda_exec<block_size, true /*async*/>;
 
     startTimer();

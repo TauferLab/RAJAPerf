@@ -154,12 +154,7 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
 
     POLYBENCH_ATAX_VIEWS_RAJA;
 
-    // One lambda per kernel, with the inner reduction written as an ordinary
-    // sequential loop inside it -- the same shape as poly_atax_1/poly_atax_2
-    // above, rather than a RAJA::statement::For<seq_exec> around a separate
-    // lambda.
     using EXEC_POL = RAJA::cuda_exec<block_size, true /*async*/>;
-
 
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning

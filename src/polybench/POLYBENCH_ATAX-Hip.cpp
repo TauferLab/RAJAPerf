@@ -154,10 +154,6 @@ void POLYBENCH_ATAX::runHipVariantImpl(VariantID vid)
 
     POLYBENCH_ATAX_VIEWS_RAJA;
 
-    // One lambda per kernel, with the inner reduction written as an ordinary
-    // sequential loop inside it -- the same shape as poly_atax_1/poly_atax_2
-    // above, rather than a RAJA::statement::For<seq_exec> around a separate
-    // lambda.
     using EXEC_POL = RAJA::hip_exec<block_size, true /*async*/>;
 
     startTimer();

@@ -82,6 +82,29 @@ constexpr rajaperf::Index_type MAT_MAT_TL_SZ = 16;
     dot += a_kn * b_kn;                                                        \
   }
 
+//
+// Guard-peeled form of MAT_MAT_BODY_2 for RAJA_CUDA / RAJA_HIP.
+//
+// Row/Col bounds are loop-invariant, and kn can only exceed N in the
+// final tile, so move these checks out of the hot inner loop. This also
+// avoids a backend difference: ptxas predicates the guarded loads, while
+// AMDGPU lowers them to heavier EXEC-mask control flow.
+//
+// Force full unrolling to preserve the original 16x unroll behavior.
+// The fallback path retains the original bounds checks, so results are
+// bitwise identical.
+//
+#define MAT_MAT_BODY_2_PEELED(tile_size)                                       \
+  if (Row < N && Col < N && (k + 1) * tile_size <= N) {                        \
+    RAJAPERF_PRAGMA(unroll tile_size)                                          \
+    for (Index_type n = 0; n < tile_size; ++n) {                               \
+      const Index_type kn = k * tile_size + n;                                 \
+      dot += A[Row * N + kn] * B[kn * N + Col];                                \
+    }                                                                          \
+  } else {                                                                     \
+    MAT_MAT_BODY_2(tile_size)                                                  \
+  }
+
 #define MAT_MAT_BODY_3(tile_size)                                              \
   if (Row < N && Col < N)                                                      \
     C[Col + N * Row] = dot;
