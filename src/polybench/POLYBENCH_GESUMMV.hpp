@@ -60,6 +60,34 @@
   yview(i) = alpha * tmpdot + beta * ydot;
 
 
+// Single-lambda RAJA form. Here the inner reduction runs as an ordinary
+// sequential loop inside one lambda, so the accumulator is a lambda-local
+// variable rather than a RAJA::Params entry. Unlike the POLYBENCH_GESUMMV_BODY1_RAJA above,
+// which assign to an accumulator the RAJA::kernel_param machinery owns, these
+// declare it.
+
+#define POLYBENCH_GESUMMV_BODY1_RAJA_LOCAL \
+  Real_type tmpdot = 0.0; \
+  Real_type ydot = 0.0;
+
+
+// Unroll factor applied to the inner sequential reduction in the RAJA_CUDA /
+// RAJA_HIP variants. Set explicitly so both toolchains unroll identically:
+// ptxas unrolls these loops on its own, the LLVM AMDGPU backend does not, and
+// that asymmetry is a confounder in the AMD-vs-NVIDIA comparison.
+//
+// NOTE: deliberately not RAJAPERF_UNROLL / RAJA_UNROLL_COUNT. Those lower to
+// "#pragma GCC unroll" under nvcc + gcc, which nvcc's device compiler ignores,
+// so they would unroll the AMD side only.
+
+#ifndef POLYBENCH_GESUMMV_GPU_UNROLL
+#define POLYBENCH_GESUMMV_GPU_UNROLL 4
+#endif
+
+#define POLYBENCH_GESUMMV_UNROLL \
+  RAJAPERF_PRAGMA(unroll POLYBENCH_GESUMMV_GPU_UNROLL)
+
+
 #define POLYBENCH_GESUMMV_VIEWS_RAJA \
   using VIEW1_TYPE = RAJA::View<Real_type, \
                                  RAJA::Layout<1, Index_type, 0>>; \

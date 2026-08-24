@@ -138,16 +138,16 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
 
     POLYBENCH_GEMM_VIEWS_RAJA;
 
+    // One lambda, with the k-reduction written as an ordinary sequential loop
+    // inside it -- the same shape as poly_gemm above, rather than a
+    // RAJA::statement::For<seq_exec> around a separate lambda.  The i/j thread
+    // mapping is unchanged.
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernelFixedAsync<i_block_sz * j_block_sz,
           RAJA::statement::For<0, RAJA::hip_global_size_y_direct<i_block_sz>,   // i
             RAJA::statement::For<1, RAJA::hip_global_size_x_direct<j_block_sz>, // j
-              RAJA::statement::Lambda<0, RAJA::Params<0>>,
-              RAJA::statement::For<2, RAJA::seq_exec,           // k
-                RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
-              >,
-              RAJA::statement::Lambda<2, RAJA::Segs<0,1>, RAJA::Params<0>>
+              RAJA::statement::Lambda<0, RAJA::Segs<0,1>>
             >
           >
         >
@@ -158,23 +158,18 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
         RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMM_1");
-        RAJA::kernel_param_resource<EXEC_POL>(
+        RAJA::kernel_resource<EXEC_POL>(
 
           RAJA::make_tuple( RAJA::RangeSegment{0, ni},
-                            RAJA::RangeSegment{0, nj},
-                            RAJA::RangeSegment{0, nk} ),
-          RAJA::tuple<Real_type>{0.0},  // variable for dot
+                            RAJA::RangeSegment{0, nj} ),
           res,
 
-          [=] __device__ (Real_type& dot) {
-            POLYBENCH_GEMM_BODY1_RAJA;
-          },
-          [=] __device__ (Index_type i, Index_type j, Index_type k,
-                          Real_type& dot) {
-            POLYBENCH_GEMM_BODY3_RAJA;
-          },
-          [=] __device__ (Index_type i, Index_type j,
-                          Real_type& dot) {
+          [=] __device__ (Index_type i, Index_type j) {
+            POLYBENCH_GEMM_BODY1_RAJA_LOCAL;
+            POLYBENCH_GEMM_UNROLL
+            for (Index_type k = 0; k < nk; ++k ) {
+              POLYBENCH_GEMM_BODY3_RAJA;
+            }
             POLYBENCH_GEMM_BODY4_RAJA;
           }
         );

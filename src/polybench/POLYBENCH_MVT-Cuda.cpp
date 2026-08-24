@@ -96,18 +96,11 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
 
     POLYBENCH_MVT_VIEWS_RAJA;
 
-    using EXEC_POL =
-      RAJA::KernelPolicy<
-        RAJA::statement::CudaKernelFixedAsync<block_size,
-          RAJA::statement::For<0, RAJA::cuda_global_size_x_direct<block_size>,  // i
-            RAJA::statement::Lambda<0, RAJA::Params<0>>,
-            RAJA::statement::For<1, RAJA::seq_exec,            // j
-              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
-            >,
-            RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
-          >
-        >
-      >;
+    // One lambda per kernel, with the j-reduction written as an ordinary
+    // sequential loop inside it -- the same shape as poly_mvt_1/poly_mvt_2
+    // above, rather than a RAJA::statement::For<seq_exec> around a separate
+    // lambda.
+    using EXEC_POL = RAJA::cuda_exec<block_size, true /*async*/>;
 
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
@@ -120,43 +113,27 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
 #endif
 
         RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_MVT_1");
-        RAJA::kernel_param_resource<EXEC_POL>(
-          RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                           RAJA::RangeSegment{0, N}),
-          RAJA::tuple<Real_type>{0.0},
-          res,
-
-          [=] __device__ (Real_type &dot) {
-            POLYBENCH_MVT_BODY1_RAJA;
-          },
-          [=] __device__ (Index_type i, Index_type j, Real_type &dot) {
-            POLYBENCH_MVT_BODY2_RAJA;
-          },
-          [=] __device__ (Index_type i, Real_type &dot) {
+        RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{0, N},
+          [=] __device__ (Index_type i) {
+            POLYBENCH_MVT_BODY1_RAJA_LOCAL;
+            POLYBENCH_MVT_UNROLL
+            for (Index_type j = 0; j < N; ++j ) {
+              POLYBENCH_MVT_BODY2_RAJA;
+            }
             POLYBENCH_MVT_BODY3_RAJA;
-          }
-
-        );
+        });
         RP_CALI_SUBKERNEL_END("POLYBENCH_MVT_1");
 
         RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_MVT_2");
-        RAJA::kernel_param_resource<EXEC_POL>(
-          RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                           RAJA::RangeSegment{0, N}),
-          RAJA::tuple<Real_type>{0.0},
-          res,
-
-          [=] __device__ (Real_type &dot) {
-            POLYBENCH_MVT_BODY4_RAJA;
-          },
-          [=] __device__ (Index_type i, Index_type j, Real_type &dot) {
-            POLYBENCH_MVT_BODY5_RAJA;
-          },
-          [=] __device__ (Index_type i, Real_type &dot) {
+        RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{0, N},
+          [=] __device__ (Index_type i) {
+            POLYBENCH_MVT_BODY4_RAJA_LOCAL;
+            POLYBENCH_MVT_UNROLL
+            for (Index_type j = 0; j < N; ++j ) {
+              POLYBENCH_MVT_BODY5_RAJA;
+            }
             POLYBENCH_MVT_BODY6_RAJA;
-          }
-
-        );
+        });
         RP_CALI_SUBKERNEL_END("POLYBENCH_MVT_2");
 
 #if CUDART_VERSION >= 9000

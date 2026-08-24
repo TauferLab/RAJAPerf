@@ -265,19 +265,10 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
         >
       >;
 
-    using EXEC_POL24 =
-      RAJA::KernelPolicy<
-        RAJA::statement::CudaKernelFixedAsync<block_size,
-          RAJA::statement::For<0, RAJA::cuda_global_size_x_direct<block_size>,   // i
-            RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
-            RAJA::statement::For<1, RAJA::seq_exec,             // j
-              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>,
-            >,
-            RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
-          >
-        >
-      >;
-
+    // Launches 2 and 4 now use one lambda each, with the inner reduction
+    // written as an ordinary sequential loop inside it -- the same shape as
+    // poly_gemver_2/poly_gemver_3 above, rather than a
+    // RAJA::statement::For<seq_exec> around a separate lambda.
     using EXEC_POL3 = RAJA::cuda_exec<block_size, true /*async*/>;
 
     startTimer();
@@ -296,22 +287,15 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
       RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_1");
 
       RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_2");
-      RAJA::kernel_param_resource<EXEC_POL24>(
-        RAJA::make_tuple(RAJA::RangeSegment{0, n},
-                         RAJA::RangeSegment{0, n}),
-        RAJA::tuple<Real_type>{0.0},
-        res,
-
-        [=] __device__ (Index_type /* i */, Real_type &dot) {
-          POLYBENCH_GEMVER_BODY2_RAJA;
-        },
-        [=] __device__ (Index_type i, Index_type j, Real_type &dot) {
-          POLYBENCH_GEMVER_BODY3_RAJA;
-        },
-        [=] __device__ (Index_type i, Real_type &dot) {
+      RAJA::forall<EXEC_POL3> ( res, RAJA::RangeSegment{0, n},
+        [=] __device__ (Index_type i) {
+          POLYBENCH_GEMVER_BODY2_RAJA_LOCAL;
+          POLYBENCH_GEMVER_UNROLL
+          for (Index_type j = 0; j < n; ++j ) {
+            POLYBENCH_GEMVER_BODY3_RAJA;
+          }
           POLYBENCH_GEMVER_BODY4_RAJA;
-        }
-      );
+      });
       RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_2");
 
       RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_3");
@@ -323,22 +307,15 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
       RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_3");
 
       RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_4");
-      RAJA::kernel_param_resource<EXEC_POL24>(
-        RAJA::make_tuple(RAJA::RangeSegment{0, n},
-                         RAJA::RangeSegment{0, n}),
-        RAJA::tuple<Real_type>{0.0},
-        res,
-
-        [=] __device__ (Index_type i, Real_type &dot) {
-          POLYBENCH_GEMVER_BODY6_RAJA;
-        },
-        [=] __device__ (Index_type i, Index_type j, Real_type &dot) {
-          POLYBENCH_GEMVER_BODY7_RAJA;
-        },
-        [=] __device__ (Index_type i, Real_type &dot) {
+      RAJA::forall<EXEC_POL3> ( res, RAJA::RangeSegment{0, n},
+        [=] __device__ (Index_type i) {
+          POLYBENCH_GEMVER_BODY6_RAJA_LOCAL;
+          POLYBENCH_GEMVER_UNROLL
+          for (Index_type j = 0; j < n; ++j ) {
+            POLYBENCH_GEMVER_BODY7_RAJA;
+          }
           POLYBENCH_GEMVER_BODY8_RAJA;
-        }
-      );
+      });
       RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_4");
 
     }

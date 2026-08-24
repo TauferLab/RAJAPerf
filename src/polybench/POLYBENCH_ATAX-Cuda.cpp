@@ -154,31 +154,11 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
 
     POLYBENCH_ATAX_VIEWS_RAJA;
 
-    using EXEC_POL1 =
-      RAJA::KernelPolicy<
-        RAJA::statement::CudaKernelFixedAsync<block_size,
-          RAJA::statement::For<0, RAJA::cuda_global_size_x_direct<block_size>,
-            RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
-            RAJA::statement::For<1, RAJA::seq_exec,
-              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
-            >,
-            RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
-          >
-        >
-      >;
-
-    using EXEC_POL2 =
-      RAJA::KernelPolicy<
-        RAJA::statement::CudaKernelFixedAsync<block_size,
-          RAJA::statement::For<1, RAJA::cuda_global_size_x_direct<block_size>,
-            RAJA::statement::Lambda<0, RAJA::Segs<1>, RAJA::Params<0>>,
-            RAJA::statement::For<0, RAJA::seq_exec,
-              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
-            >,
-            RAJA::statement::Lambda<2, RAJA::Segs<1>, RAJA::Params<0>>
-          >
-        >
-      >;
+    // One lambda per kernel, with the inner reduction written as an ordinary
+    // sequential loop inside it -- the same shape as poly_atax_1/poly_atax_2
+    // above, rather than a RAJA::statement::For<seq_exec> around a separate
+    // lambda.
+    using EXEC_POL = RAJA::cuda_exec<block_size, true /*async*/>;
 
 
     startTimer();
@@ -186,43 +166,27 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
       RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_ATAX_1");
-      RAJA::kernel_param_resource<EXEC_POL1>(
-        RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                         RAJA::RangeSegment{0, N}),
-        RAJA::tuple<Real_type>{0.0},
-        res,
-
-        [=] __device__ (Index_type i, Real_type &dot) {
-          POLYBENCH_ATAX_BODY1_RAJA;
-        },
-        [=] __device__ (Index_type i, Index_type j, Real_type &dot) {
-          POLYBENCH_ATAX_BODY2_RAJA;
-        },
-        [=] __device__ (Index_type i, Real_type &dot) {
+      RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{0, N},
+        [=] __device__ (Index_type i) {
+          POLYBENCH_ATAX_BODY1_RAJA_LOCAL;
+          POLYBENCH_ATAX_UNROLL
+          for (Index_type j = 0; j < N; ++j ) {
+            POLYBENCH_ATAX_BODY2_RAJA;
+          }
           POLYBENCH_ATAX_BODY3_RAJA;
-        }
-
-      );
+      });
       RP_CALI_SUBKERNEL_END("POLYBENCH_ATAX_1");
 
       RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_ATAX_2");
-      RAJA::kernel_param_resource<EXEC_POL2>(
-        RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                         RAJA::RangeSegment{0, N}),
-        RAJA::tuple<Real_type>{0.0},
-        res,
-
-        [=] __device__ (Index_type j, Real_type &dot) {
-          POLYBENCH_ATAX_BODY4_RAJA;
-        },
-        [=] __device__ (Index_type i, Index_type j , Real_type &dot) {
-          POLYBENCH_ATAX_BODY5_RAJA;
-        },
-        [=] __device__ (Index_type j, Real_type &dot) {
+      RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{0, N},
+        [=] __device__ (Index_type j) {
+          POLYBENCH_ATAX_BODY4_RAJA_LOCAL;
+          POLYBENCH_ATAX_UNROLL
+          for (Index_type i = 0; i < N; ++i ) {
+            POLYBENCH_ATAX_BODY5_RAJA;
+          }
           POLYBENCH_ATAX_BODY6_RAJA;
-        }
-
-     );
+      });
       RP_CALI_SUBKERNEL_END("POLYBENCH_ATAX_2");
 
     }
