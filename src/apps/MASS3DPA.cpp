@@ -40,6 +40,7 @@ MASS3DPA::MASS3DPA(const RunParams& params)
   setProblemDimensionality(3);
 
   setUsesFeature(Launch);
+  setProblemSizeAlignment(ProblemSizeAlignment::Natural);
 
   addVariantTunings();
 }

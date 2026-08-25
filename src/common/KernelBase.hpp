@@ -108,6 +108,10 @@ namespace rajaperf {
 class KernelBase
 {
 public:
+  enum class ProblemSizeAlignment {
+    Unsupported, Natural, OneDimensional, MatrixEdge,
+    TiledTwoDimensional, Rectangular32ByBlockQuotient
+  };
   static constexpr size_t getUnknownTuningIdx()
     { return std::numeric_limits<size_t>::max(); }
   static std::string getDefaultTuningName() { return "default"; }
@@ -146,6 +150,10 @@ public:
   void setBytesAtomicModifyWrittenPerRep(Index_type bytes) { bytes_atomic_modify_written_per_rep = bytes;}
   void setFLOPsPerRep(Index_type FLOPs) { FLOPs_per_rep = FLOPs; }
   void setBlockSize(Index_type size) { kernel_block_size = size; }
+  void setProblemSizeAlignment(ProblemSizeAlignment alignment)
+  { problem_size_alignment = alignment; }
+  ProblemSizeAlignment getProblemSizeAlignment() const
+  { return problem_size_alignment; }
   void setChecksumConsistency(ChecksumConsistency cc) { checksum_consistency = cc; }
   void setChecksumTolerance(Checksum_type ct) { checksum_tolerance = ct; }
   void setComplexity(Complexity ac) { complexity = ac; }
@@ -188,6 +196,20 @@ public:
         &KernelBase::wrapDerivedVariantTuningMethod<
             class_of_member_function_pointer_t<decltype(method)>, method>);
   }
+
+  template < auto method >
+  void addVariantTuning(VariantID vid, std::string name,
+                        Index_type gpu_block_size,
+                        TuningAttribute attrs = TuningAttribute::none)
+  {
+    addVariantTuning(vid, std::move(name), attrs,
+        &KernelBase::wrapDerivedVariantTuningMethod<
+            class_of_member_function_pointer_t<decltype(method)>, method>,
+        gpu_block_size);
+  }
+
+  Index_type getTuningGPUBlockSize(VariantID vid, size_t tune_idx) const
+  { return variant_tuning_gpu_block_sizes[vid].at(tune_idx); }
 
   void addVariantTunings()
   {
@@ -733,7 +755,8 @@ private:
   }
 
   void addVariantTuning(VariantID vid, std::string name, TuningAttribute attrs,
-                        variant_tuning_method_pointer method);
+                        variant_tuning_method_pointer method,
+                        Index_type gpu_block_size = 0);
 
   //
   // Boolean member shared by all kernel objects indicating whether they
@@ -771,6 +794,8 @@ private:
   std::vector<std::string> variant_tuning_names[NumVariants];
   std::vector<TuningAttribute> variant_tuning_attrs[NumVariants];
   std::vector<variant_tuning_method_pointer> variant_tuning_methods[NumVariants];
+  std::vector<Index_type> variant_tuning_gpu_block_sizes[NumVariants];
+  ProblemSizeAlignment problem_size_alignment = ProblemSizeAlignment::Unsupported;
 
   //
   // Properties of kernel dependent on how kernel is run

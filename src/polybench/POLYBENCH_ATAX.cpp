@@ -38,6 +38,7 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   setProblemDimensionality(2);
 
   setUsesFeature(Kernel);
+  setProblemSizeAlignment(ProblemSizeAlignment::MatrixEdge);
 
   addVariantTunings();
 }

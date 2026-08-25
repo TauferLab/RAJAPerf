@@ -11,6 +11,11 @@
 
 #include "RunParams.hpp"
 
+#include <algorithm>
+#include <cmath>
+#include <numeric>
+#include <stdexcept>
+
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
 #include <mpi.h>
 #endif
@@ -1410,6 +1415,89 @@ KernelBase* getKernelObject(KernelID kid,
     target_size = static_cast<Index_type>(kernel->getActualProblemSize()*run_params.getSizeFactor());
 
     kernel->setSize(target_size, target_reps);
+
+    if (run_params.forceBlockAlignment()) {
+      Index_type block_size = 0;
+      const auto& selected_tunings = run_params.getTuningInput();
+      const auto& excluded_tunings = run_params.getExcludeTuningInput();
+
+      for (VariantID vid : run_params.getVariantIDsToRun()) {
+        for (size_t tune_idx = 0;
+             tune_idx < kernel->getNumVariantTunings(vid); ++tune_idx) {
+          const std::string& tuning = kernel->getVariantTuningName(vid, tune_idx);
+          const bool selected = selected_tunings.empty() ||
+              std::find(selected_tunings.begin(), selected_tunings.end(), tuning) !=
+                  selected_tunings.end();
+          const bool excluded =
+              std::find(excluded_tunings.begin(), excluded_tunings.end(), tuning) !=
+                  excluded_tunings.end();
+          if (!selected || excluded) continue;
+
+          const Index_type tuning_block_size =
+              kernel->getTuningGPUBlockSize(vid, tune_idx);
+          if (tuning_block_size <= 0) {
+            throw std::runtime_error("--force-block-alignment: tuning '" +
+                tuning + "' for kernel " + kernel->getName() +
+                " has no compile-time GPU block size metadata");
+          }
+          if (block_size != 0 && block_size != tuning_block_size) {
+            throw std::runtime_error("--force-block-alignment: selected tunings for kernel " +
+                kernel->getName() + " have ambiguous GPU block sizes");
+          }
+          block_size = tuning_block_size;
+        }
+      }
+
+      if (block_size == 0) {
+        throw std::runtime_error("--force-block-alignment: no selected GPU tuning for kernel " +
+            kernel->getName());
+      }
+
+      Index_type alignment = block_size;
+      switch (kernel->getProblemSizeAlignment()) {
+        case KernelBase::ProblemSizeAlignment::Natural:
+          alignment = 1;
+          break;
+        case KernelBase::ProblemSizeAlignment::TiledTwoDimensional:
+          alignment = static_cast<Index_type>(std::sqrt(block_size));
+          if (alignment * alignment != block_size) {
+            throw std::runtime_error("--force-block-alignment: tuning block size for kernel " +
+                kernel->getName() + " does not define a square 2D tile");
+          }
+          // fall through
+        case KernelBase::ProblemSizeAlignment::Rectangular32ByBlockQuotient:
+          if (kernel->getProblemSizeAlignment() ==
+              KernelBase::ProblemSizeAlignment::Rectangular32ByBlockQuotient) {
+            if (block_size % 32 != 0) {
+              throw std::runtime_error("--force-block-alignment: tuning block size for kernel " +
+                  kernel->getName() + " is incompatible with its fixed 32-thread x dimension");
+            }
+            const Index_type other_dimension = block_size / 32;
+            alignment = std::lcm(Index_type(32), other_dimension);
+          }
+          // fall through
+        case KernelBase::ProblemSizeAlignment::MatrixEdge: {
+          Index_type edge = static_cast<Index_type>(
+              std::sqrt(kernel->getActualProblemSize()));
+          edge -= edge % alignment;
+          if (edge <= 0) {
+            throw std::runtime_error("--force-block-alignment: memory limit is too small for kernel " +
+                kernel->getName());
+          }
+          target_size = edge * edge;
+          break;
+        }
+        case KernelBase::ProblemSizeAlignment::OneDimensional:
+          target_size = kernel->getActualProblemSize();
+          target_size -= target_size % alignment;
+          break;
+        case KernelBase::ProblemSizeAlignment::Unsupported:
+          throw std::runtime_error("--force-block-alignment is unsupported for kernel " +
+              kernel->getName());
+      }
+
+      kernel->setSize(target_size, target_reps);
+    }
 
   }
 

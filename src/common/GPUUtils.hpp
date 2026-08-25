@@ -370,10 +370,11 @@ using reducer_helpers = camp::list<
             run_params.validGPUBlockSize(block_size)) {                        \
           if (block_size == 0u) {                                              \
             addVariantTuning<&KERNEL::run##Variant##VariantImpl<block_size>>(  \
-                vid, "block_auto");                                            \
+                vid, "block_auto", Index_type(0));                             \
           } else {                                                             \
             addVariantTuning<&KERNEL::run##Variant##VariantImpl<block_size>>(  \
-                vid, "block_"+std::to_string(block_size));                     \
+                vid, "block_"+std::to_string(block_size),                      \
+                Index_type(block_size));                                       \
           }                                                                    \
         }                                                                      \
       });                                                                      \

@@ -39,6 +39,7 @@ POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
   setProblemDimensionality(2);
 
   setUsesFeature(Kernel);
+  setProblemSizeAlignment(ProblemSizeAlignment::Rectangular32ByBlockQuotient);
 
   addVariantTunings();
 }

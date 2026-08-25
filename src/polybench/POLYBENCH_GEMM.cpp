@@ -41,6 +41,7 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   setProblemDimensionality(2);
 
   setUsesFeature(Kernel);
+  setProblemSizeAlignment(ProblemSizeAlignment::MatrixEdge);
 
   addVariantTunings();
 }

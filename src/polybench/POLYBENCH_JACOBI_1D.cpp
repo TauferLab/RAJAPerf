@@ -44,6 +44,7 @@ POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
   setProblemDimensionality(1);
 
   setUsesFeature(Forall);
+  setProblemSizeAlignment(ProblemSizeAlignment::OneDimensional);
 
   addVariantTunings();
 }

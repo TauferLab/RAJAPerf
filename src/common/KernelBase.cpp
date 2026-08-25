@@ -132,13 +132,15 @@ KernelBase::~KernelBase()
 
 void KernelBase::addVariantTuning(VariantID vid, std::string name,
                                   TuningAttribute attrs,
-                                  variant_tuning_method_pointer method)
+                                  variant_tuning_method_pointer method,
+                                  Index_type gpu_block_size)
 {
   if (!isVariantAvailable(vid)) return;
 
   variant_tuning_names[vid].emplace_back(std::move(name));
   variant_tuning_attrs[vid].emplace_back(std::move(attrs));
   variant_tuning_methods[vid].emplace_back(method);
+  variant_tuning_gpu_block_sizes[vid].emplace_back(gpu_block_size);
   checksum_min[vid].emplace_back(std::numeric_limits<Checksum_type>::max());
   checksum_max[vid].emplace_back(-std::numeric_limits<Checksum_type>::max());
   checksum_sum[vid].emplace_back(0.0);

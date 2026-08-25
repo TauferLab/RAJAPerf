@@ -39,6 +39,7 @@ POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
   setProblemDimensionality(2);
 
   setUsesFeature(Kernel);
+  setProblemSizeAlignment(ProblemSizeAlignment::MatrixEdge);
 
   addVariantTunings();
 }

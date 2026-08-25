@@ -42,6 +42,7 @@
 #include <fstream>
 #include <cmath>
 #include <algorithm>
+#include <numeric>
 
 #if defined(_WIN32)
 #include<direct.h>
@@ -230,6 +231,75 @@ ChecksumData getChecksumData(KernelBase* kern, VariantID vid)
         std::move(checksums_rel_diff)
 #endif
       };
+}
+
+const char* getProblemSizeAlignmentName(
+    KernelBase::ProblemSizeAlignment alignment)
+{
+  switch (alignment) {
+    case KernelBase::ProblemSizeAlignment::Natural:
+      return "Natural";
+    case KernelBase::ProblemSizeAlignment::OneDimensional:
+      return "OneDimensional";
+    case KernelBase::ProblemSizeAlignment::MatrixEdge:
+      return "MatrixEdge";
+    case KernelBase::ProblemSizeAlignment::TiledTwoDimensional:
+      return "TiledTwoDimensional";
+    case KernelBase::ProblemSizeAlignment::Rectangular32ByBlockQuotient:
+      return "Rectangular32ByBlockQuotient";
+    case KernelBase::ProblemSizeAlignment::Unsupported:
+      return "Unsupported";
+  }
+  return "Unknown";
+}
+
+std::string getProblemSizeAlignmentFactor(const KernelBase* kern,
+                                          VariantID vid,
+                                          size_t tune_idx)
+{
+  const auto alignment_kind = kern->getProblemSizeAlignment();
+  Index_type extent = kern->getActualProblemSize();
+  Index_type alignment = kern->getTuningGPUBlockSize(vid, tune_idx);
+
+  switch (alignment_kind) {
+    case KernelBase::ProblemSizeAlignment::Natural:
+      alignment = 1;
+      break;
+    case KernelBase::ProblemSizeAlignment::OneDimensional:
+      break;
+    case KernelBase::ProblemSizeAlignment::TiledTwoDimensional:
+      extent = static_cast<Index_type>(std::sqrt(extent));
+      alignment = static_cast<Index_type>(std::sqrt(alignment));
+      if (alignment * alignment !=
+          kern->getTuningGPUBlockSize(vid, tune_idx)) {
+        return "N/A";
+      }
+      break;
+    case KernelBase::ProblemSizeAlignment::Rectangular32ByBlockQuotient:
+      extent = static_cast<Index_type>(std::sqrt(extent));
+      if (alignment <= 0 || alignment % 32 != 0) {
+        return "N/A";
+      }
+      alignment = std::lcm(Index_type(32), alignment / 32);
+      break;
+    case KernelBase::ProblemSizeAlignment::MatrixEdge:
+      extent = static_cast<Index_type>(std::sqrt(extent));
+      break;
+    case KernelBase::ProblemSizeAlignment::Unsupported:
+      return "N/A";
+  }
+
+  if (alignment <= 0) {
+    return "N/A";
+  }
+  if (extent % alignment == 0) {
+    return std::to_string(extent / alignment);
+  }
+
+  std::ostringstream value;
+  value << std::setprecision(12)
+        << static_cast<double>(extent) / static_cast<double>(alignment);
+  return value.str();
 }
 
 } // end unnamed namespace
@@ -868,6 +938,8 @@ void Executor::writeKernelRunDataSummary(ostream& str,
   size_t     variant_width = 0;
   size_t     tuning_width = 0;
   Index_type psize_width = 0;
+  size_t     alignmentPolicy_width = 0;
+  size_t     alignmentFactor_width = 0;
   size_t     checksum_width = 0;
   size_t     timePerRep_width = prec + 2;
   size_t     bandwidth_width = prec + 2;
@@ -876,11 +948,20 @@ void Executor::writeKernelRunDataSummary(ostream& str,
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
     kernel_width = max(kernel_width, kernels[ik]->getName().size());
     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-      size_t iv_width = getVariantName(variant_ids[iv]).size();
-      for (std::string const& tuning_name :
-           kernels[ik]->getVariantTuningNames(variant_ids[iv])) {
+      const VariantID vid = variant_ids[iv];
+      size_t iv_width = getVariantName(vid).size();
+      const auto& tuning_names = kernels[ik]->getVariantTuningNames(vid);
+      for (size_t tune_idx = 0; tune_idx < tuning_names.size(); ++tune_idx) {
+        const std::string& tuning_name = tuning_names[tune_idx];
         variant_width = max(variant_width, iv_width);
         tuning_width = max(tuning_width, tuning_name.size());
+        alignmentPolicy_width = max(
+            alignmentPolicy_width,
+            std::string(getProblemSizeAlignmentName(
+                kernels[ik]->getProblemSizeAlignment())).size());
+        alignmentFactor_width = max(
+            alignmentFactor_width,
+            getProblemSizeAlignmentFactor(kernels[ik], vid, tune_idx).size());
       }
     }
     psize_width = max(psize_width, kernels[ik]->getActualProblemSize());
@@ -905,6 +986,14 @@ void Executor::writeKernelRunDataSummary(ostream& str,
   psize_width = max( static_cast<Index_type>(psize_head.size()),
                      static_cast<Index_type>(psize) ) + 3;
 
+  string alignmentPolicy_head("Alignment policy");
+  alignmentPolicy_width = max(alignmentPolicy_head.size(),
+                              alignmentPolicy_width) + 2;
+
+  string alignmentFactor_head("Extent/alignment");
+  alignmentFactor_width = max(alignmentFactor_head.size(),
+                              alignmentFactor_width) + 2;
+
   string checksum_head("Checksum");
   checksum_width = max( checksum_head.size(),
                         checksum_width ) + 2;
@@ -925,6 +1014,8 @@ void Executor::writeKernelRunDataSummary(ostream& str,
       << sepchr <<left << setw(variant_width) << variant_head
       << sepchr <<left << setw(tuning_width) << tuning_head
       << sepchr <<right<< setw(psize_width) << psize_head
+      << sepchr <<left << setw(alignmentPolicy_width) << alignmentPolicy_head
+      << sepchr <<right<< setw(alignmentFactor_width) << alignmentFactor_head
       << sepchr <<left << setw(checksum_width) << checksum_head
       << sepchr <<right<< setw(timePerRep_width) << timePerRep_head
       << sepchr <<right<< setw(bandwidth_width) << bandwidth_head
@@ -963,11 +1054,17 @@ void Executor::writeKernelRunDataSummary(ostream& str,
         auto time_per_rep = getReportDataEntry(CSVRepMode::Timing, RunParams::CombinerOpt::Average, kern, vid, tune_idx) / reps;
         auto bandwidth = bytes_moved_per_rep / time_per_rep / (1024.0 * 1024.0 * 1024.0);
         auto flops = flops_per_rep / time_per_rep / (1000.0 * 1000.0 * 1000.0);
+        const char* alignment_policy = getProblemSizeAlignmentName(
+            kern->getProblemSizeAlignment());
+        const string alignment_factor = getProblemSizeAlignmentFactor(
+            kern, vid, tune_idx);
 
         str           <<left << setw(kernel_width) << kern->getName()
             << sepchr <<left << setw(variant_width) << variant_name
             << sepchr <<left << setw(tuning_width) << tuning_name
             << sepchr <<right<< setw(psize_width) << problem_size
+            << sepchr <<left << setw(alignmentPolicy_width) << alignment_policy
+            << sepchr <<right<< setw(alignmentFactor_width) << alignment_factor
             << sepchr <<left << setw(checksum_width) << checksum_result
             << showpoint << setprecision(prec) << std::defaultfloat
             << sepchr <<right<< setw(timePerRep_width) << time_per_rep

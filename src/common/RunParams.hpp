@@ -222,6 +222,7 @@ public:
   MemoryMeaning getMemoryMeaning() const { return memory_meaning; }
 
   double getMemory() const { return memory; }
+  bool forceBlockAlignment() const { return force_block_alignment; }
 
   double getMinSize() const { return min_size; }
 
@@ -430,6 +431,7 @@ private:
   double size;           /*!< kernel size to run (input option) */
   MemoryMeaning memory_meaning; /*!< meaning of memory value */
   double memory;           /*!< memory size to run (input option) */
+  bool force_block_alignment; /*!< align memory-sized problems to launch geometry */
   double min_size;           /*!< minimum kernel size to run (input option) */
   Size_type data_alignment;
 

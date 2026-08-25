@@ -40,6 +40,7 @@ MASS3DEA::MASS3DEA(const RunParams& params)
   setProblemDimensionality(3);
 
   setUsesFeature(Launch);
+  setProblemSizeAlignment(ProblemSizeAlignment::Natural);
 
   addVariantTunings();
 }

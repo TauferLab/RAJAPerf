@@ -40,6 +40,7 @@ RunParams::RunParams(int argc, char** argv)
    size(0.0),
    memory_meaning(MemoryMeaning::Unset),
    memory(0.0),
+   force_block_alignment(false),
    min_size(0.0),
    data_alignment(RAJA::DATA_ALIGN),
    multi_reduce_num_bins(10),
@@ -504,6 +505,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                   << std::endl;
         input_state = BadInput;
       }
+
+    } else if ( opt == std::string("--force-block-alignment") ) {
+
+      force_block_alignment = true;
 
     } else if ( opt == std::string("--memory-moved") ||
                 opt == std::string("--memory-touched") ||
@@ -1414,6 +1419,12 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
     size_meaning = SizeMeaning::Default;
   }
 
+  if (force_block_alignment && size_meaning != SizeMeaning::Memory) {
+    getCout() << "\nBad input: --force-block-alignment requires a --memory-* option"
+              << std::endl;
+    input_state = BadInput;
+  }
+
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
 
   // assumes number is >= 0
@@ -1696,6 +1707,8 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      May not be set if --size or other --memory* option is set.\n";
   str << "\t\t Example...\n"
       << "\t\t --memory-allocated 1000000 (runs each kernel such that it has ~1,000,000 bytes per rep)\n\n";
+  str << "\t --force-block-alignment [disabled by default]\n"
+      << "\t      (with --memory-*, align the selected problem's active extents to the GPU tuning)\n\n";
 
   str << "\t --min-size <int> [default is 0]\n"
       << "\t      (minimum problem size to run for all kernels)\n"

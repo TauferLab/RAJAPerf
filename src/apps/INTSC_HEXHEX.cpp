@@ -52,6 +52,7 @@ INTSC_HEXHEX::INTSC_HEXHEX(const RunParams& params)
   setProblemDimensionality(3);
 
   setUsesFeature(Forall);
+  setProblemSizeAlignment(ProblemSizeAlignment::Natural);
 
   addVariantTunings();
 }

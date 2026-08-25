@@ -41,6 +41,7 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
   setProblemDimensionality(2);
 
   setUsesFeature(Kernel);
+  setProblemSizeAlignment(ProblemSizeAlignment::MatrixEdge);
 
   addVariantTunings();
 }
