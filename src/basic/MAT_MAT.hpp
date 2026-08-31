@@ -69,10 +69,13 @@ constexpr rajaperf::Index_type MAT_MAT_TL_SZ = 16;
 // Unlike MAT_MAT_SHARED, no RAJA_TEAM_SHARED arrays are declared, so there is
 // no BODY_0 and no need for the CLANG/HIP host-compile workaround.
 //
-#define MAT_MAT_BODY_1(tile_size)                                              \
-  const Index_type Row = by * tile_size + ty;                                  \
-  const Index_type Col = bx * tile_size + tx;                                  \
+// Only output indexing depends on both block dimensions.
+#define MAT_MAT_BODY_1_SHAPE(tile_y, tile_x)                                   \
+  const Index_type Row = by * (tile_y) + ty;                                   \
+  const Index_type Col = bx * (tile_x) + tx;                                   \
   Real_type dot = 0.0;
+
+#define MAT_MAT_BODY_1(tile_size) MAT_MAT_BODY_1_SHAPE(tile_size, tile_size)
 
 #define MAT_MAT_BODY_2(tile_size)                                              \
   for (Index_type n = 0; n < tile_size; ++n) {                                 \
@@ -134,9 +137,9 @@ public:
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
 
-  template < size_t block_size >
+  template < size_t block_size, size_t block_x >
   void runCudaVariantImpl(VariantID vid);
-  template < size_t block_size >
+  template < size_t block_size, size_t block_x >
   void runHipVariantImpl(VariantID vid);
   template < size_t work_group_size >
   void runSyclVariantImpl(VariantID vid);

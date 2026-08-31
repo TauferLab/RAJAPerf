@@ -25,8 +25,6 @@ namespace polybench
 //
 // Define thread block shape for CUDA execution
 //
-#define j_block_sz (32)
-#define i_block_sz (block_size / j_block_sz)
 
 #define POLY_GEMM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA \
   j_block_sz, i_block_sz
@@ -71,9 +69,14 @@ __global__ void poly_gemm_lam(Index_type ni, Index_type nj,
 }
 
 
-template < size_t block_size >
+template < size_t block_size, size_t block_x >
 void POLYBENCH_GEMM::runCudaVariantImpl(VariantID vid)
 {
+  // block_x is the column extent; blockDim.y follows from block_size.
+  constexpr size_t j_block_sz = block_x;
+  constexpr size_t i_block_sz = block_size / block_x;
+  static_assert(i_block_sz * j_block_sz == block_size, "Invalid block shape");
+
   setBlockSize(block_size);
 
   const Index_type run_reps = getRunReps();
@@ -179,7 +182,31 @@ void POLYBENCH_GEMM::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_GEMM, Cuda, Base_CUDA, Lambda_CUDA, RAJA_CUDA)
+void POLYBENCH_GEMM::defineCudaVariantTunings()
+{
+  using block_shapes = camp::list<camp::integral_constant<size_t, 8>,
+                                  camp::integral_constant<size_t, 16>,
+                                  camp::integral_constant<size_t, 32>,
+                                  camp::integral_constant<size_t, 64> >;
+
+  for (VariantID vid : {Base_CUDA, Lambda_CUDA, RAJA_CUDA}) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        seq_for(block_shapes{}, [&](auto block_x) {
+          constexpr size_t bsz = decltype(block_size)::value;
+          constexpr size_t bx  = decltype(block_x)::value;
+          if constexpr (bsz > 0u && bx > 0u && bx <= bsz && (bsz % bx) == 0u) {
+            addVariantTuning<&POLYBENCH_GEMM::runCudaVariantImpl<bsz, bx>>(
+                vid, "block_"+std::to_string(bsz)+"_"+
+                     std::to_string(bx)+"x"+std::to_string(bsz/bx),
+                Index_type(bsz));
+          }
+        });
+      }
+    });
+  }
+}
 
 } // end namespace polybench
 } // end namespace rajaperf
