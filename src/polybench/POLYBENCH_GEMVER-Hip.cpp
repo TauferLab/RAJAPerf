@@ -123,6 +123,135 @@ __global__ void poly_gemver_234_lam(Index_type n, Lambda body)
 }
 
 
+template < size_t j_block_size, size_t i_block_size >
+__launch_bounds__(j_block_size*i_block_size)
+__global__ void poly_gemver_1_reorder(Real_ptr A,
+                                      Real_ptr u1, Real_ptr v1,
+                                      Real_ptr u2, Real_ptr v2,
+                                      Index_type n)
+{
+  Index_type i = (gridDim.z * blockIdx.x + blockIdx.z) * i_block_size + threadIdx.y;
+  Index_type j = blockIdx.y * j_block_size + threadIdx.x;
+
+  if (i < n && j < n) {
+    POLYBENCH_GEMVER_BODY1;
+  }
+}
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void poly_gemver_2_reorder(Real_ptr A,
+                                      Real_ptr x, Real_ptr y,
+                                      Real_type beta,
+                                      Index_type n)
+{
+  Index_type i = (gridDim.z * blockIdx.x + blockIdx.z) * block_size + threadIdx.x;
+  if (i < n) {
+    POLYBENCH_GEMVER_BODY2;
+    for (Index_type j = 0; j < n; ++j) {
+      POLYBENCH_GEMVER_BODY3;
+    }
+    POLYBENCH_GEMVER_BODY4;
+  }
+}
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void poly_gemver_3_reorder(Real_ptr x, Real_ptr z,
+                                      Index_type n)
+{
+  Index_type i = (gridDim.z * blockIdx.x + blockIdx.z) * block_size + threadIdx.x;
+  if (i < n) {
+    POLYBENCH_GEMVER_BODY5;
+  }
+}
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void poly_gemver_4_reorder(Real_ptr A,
+                                      Real_ptr x, Real_ptr w,
+                                      Real_type alpha,
+                                      Index_type n)
+{
+  Index_type i = (gridDim.z * blockIdx.x + blockIdx.z) * block_size + threadIdx.x;
+  if (i < n) {
+    POLYBENCH_GEMVER_BODY6;
+    for (Index_type j = 0; j < n; ++j) {
+      POLYBENCH_GEMVER_BODY7;
+    }
+    POLYBENCH_GEMVER_BODY8;
+  }
+}
+
+
+template < size_t block_size, size_t reorder_num >
+void POLYBENCH_GEMVER::runHipVariantReorder(VariantID vid)
+{
+  setBlockSize(block_size);
+
+  const Index_type run_reps = getRunReps();
+
+  auto res{getHipResource()};
+
+  POLYBENCH_GEMVER_DATA_SETUP;
+
+  if ( vid == Base_HIP ) {
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      dim3 nthreads_per_block1(j_block_sz, i_block_sz, 1);
+      int blocks_i = static_cast<int>(RAJA_DIVIDE_CEILING_INT(n, i_block_sz));
+      dim3 nblocks1(reorder_num,
+                    static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(n, j_block_sz)),
+                    static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(blocks_i, reorder_num)));
+      constexpr size_t shmem = 0;
+
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_1");
+      RPlaunchHipKernel(
+        (poly_gemver_1_reorder<j_block_sz, i_block_sz>),
+        nblocks1, nthreads_per_block1,
+        shmem, res.get_stream(),
+        A, u1, v1, u2, v2, n );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_1");
+
+      dim3 nthreads_per_block(block_size, 1, 1);
+      int blocks = static_cast<int>(RAJA_DIVIDE_CEILING_INT(n, block_size));
+      dim3 nblocks(reorder_num,
+                   1,
+                   static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(blocks, reorder_num)));
+
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_2");
+      RPlaunchHipKernel( (poly_gemver_2_reorder<block_size>),
+                         nblocks, nthreads_per_block,
+                         shmem, res.get_stream(),
+                         A, x, y, beta, n );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_2");
+
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_3");
+      RPlaunchHipKernel( (poly_gemver_3_reorder<block_size>),
+                         nblocks, nthreads_per_block,
+                         shmem, res.get_stream(),
+                         x, z, n );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_3");
+
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_4");
+      RPlaunchHipKernel( (poly_gemver_4_reorder<block_size>),
+                         nblocks, nthreads_per_block,
+                         shmem, res.get_stream(),
+                         A, x, w, alpha, n );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_4");
+
+    }
+    stopTimer();
+
+  } else {
+      getCout() << "\n  POLYBENCH_GEMVER : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+
 template < size_t block_size >
 void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
 {
@@ -322,7 +451,34 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_GEMVER, Hip, Base_HIP, Lambda_HIP, RAJA_HIP)
+void POLYBENCH_GEMVER::defineHipVariantTunings()
+{
+  for (VariantID vid : {Base_HIP, Lambda_HIP, RAJA_HIP}) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        if (block_size == 0u) {
+          addVariantTuning<&POLYBENCH_GEMVER::runHipVariantImpl<block_size>>(
+              vid, "block_auto");
+        } else {
+          addVariantTuning<&POLYBENCH_GEMVER::runHipVariantImpl<block_size>>(
+              vid, "block_"+std::to_string(block_size));
+        }
+
+        if (vid == Base_HIP) {
+          addVariantTuning<&POLYBENCH_GEMVER::runHipVariantReorder<block_size, 6>>(
+              vid, "reorder6_"+std::to_string(block_size));
+        }
+
+      }
+
+    });
+
+  }
+}
 
 } // end namespace polybench
 } // end namespace rajaperf

@@ -56,6 +56,86 @@ __global__ void poly_mvt_2(Real_ptr A, Real_ptr x2, Real_ptr y2,
 
 
 template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void poly_mvt_1_reorder(Real_ptr A, Real_ptr x1, Real_ptr y1,
+                                   Index_type N)
+{
+   Index_type i = (gridDim.z * blockIdx.x + blockIdx.z) * block_size + threadIdx.x;
+
+   if (i < N) {
+     POLYBENCH_MVT_BODY1;
+     for (Index_type j = 0; j < N; ++j ) {
+       POLYBENCH_MVT_BODY2;
+     }
+     POLYBENCH_MVT_BODY3;
+   }
+}
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void poly_mvt_2_reorder(Real_ptr A, Real_ptr x2, Real_ptr y2,
+                                   Index_type N)
+{
+   Index_type i = (gridDim.z * blockIdx.x + blockIdx.z) * block_size + threadIdx.x;
+
+   if (i < N) {
+     POLYBENCH_MVT_BODY4;
+     for (Index_type j = 0; j < N; ++j ) {
+       POLYBENCH_MVT_BODY5;
+     }
+     POLYBENCH_MVT_BODY6;
+   }
+}
+
+
+template < size_t block_size, size_t reorder_num >
+void POLYBENCH_MVT::runHipVariantReorder(VariantID vid)
+{
+  setBlockSize(block_size);
+
+  const Index_type run_reps = getRunReps();
+
+  auto res{getHipResource()};
+
+  POLYBENCH_MVT_DATA_SETUP;
+
+  if ( vid == Base_HIP ) {
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      dim3 nthreads_per_block(block_size, 1, 1);
+      int blocks = static_cast<int>(RAJA_DIVIDE_CEILING_INT(N, block_size));
+      dim3 nblocks(reorder_num,
+                   1,
+                   static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(blocks, reorder_num)));
+      constexpr size_t shmem = 0;
+
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_MVT_1");
+      RPlaunchHipKernel( (poly_mvt_1_reorder<block_size>),
+                         nblocks, nthreads_per_block,
+                         shmem, res.get_stream(),
+                         A, x1, y1, N );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_MVT_1");
+
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_MVT_2");
+      RPlaunchHipKernel( (poly_mvt_2_reorder<block_size>),
+                         nblocks, nthreads_per_block,
+                         shmem, res.get_stream(),
+                         A, x2, y2, N );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_MVT_2");
+
+    }
+    stopTimer();
+
+  } else {
+      getCout() << "\n  POLYBENCH_MVT : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+
+template < size_t block_size >
 void POLYBENCH_MVT::runHipVariantImpl(VariantID vid)
 {
   setBlockSize(block_size);
@@ -138,7 +218,34 @@ void POLYBENCH_MVT::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_MVT, Hip, Base_HIP, RAJA_HIP)
+void POLYBENCH_MVT::defineHipVariantTunings()
+{
+  for (VariantID vid : {Base_HIP, RAJA_HIP}) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        if (block_size == 0u) {
+          addVariantTuning<&POLYBENCH_MVT::runHipVariantImpl<block_size>>(
+              vid, "block_auto");
+        } else {
+          addVariantTuning<&POLYBENCH_MVT::runHipVariantImpl<block_size>>(
+              vid, "block_"+std::to_string(block_size));
+        }
+
+        if (vid == Base_HIP) {
+          addVariantTuning<&POLYBENCH_MVT::runHipVariantReorder<block_size, 6>>(
+              vid, "reorder6_"+std::to_string(block_size));
+        }
+
+      }
+
+    });
+
+  }
+}
 
 } // end namespace polybench
 } // end namespace rajaperf

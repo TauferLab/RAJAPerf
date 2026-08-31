@@ -40,6 +40,71 @@ __global__ void mat_mat(Index_type N, Real_ptr C, Real_ptr A,
   MAT_MAT_BODY_3(tile_size)
 }
 
+template < Index_type tile_x, Index_type tile_y, Index_type tile_size >
+  __launch_bounds__(tile_x*tile_y)
+__global__ void mat_mat_reorder(Index_type N, Real_ptr C, Real_ptr A,
+                                Real_ptr B) {
+
+  Index_type tx = threadIdx.x;
+  Index_type ty = threadIdx.y;
+  Index_type bx = blockIdx.y;
+  Index_type by = (gridDim.z * blockIdx.x + blockIdx.z);
+
+  MAT_MAT_BODY_1_SHAPE(tile_y, tile_x)
+
+  for (Index_type k = 0; k < (tile_size + N - 1) / tile_size; k++) {
+
+    MAT_MAT_BODY_2(tile_size)
+  }
+
+  MAT_MAT_BODY_3(tile_size)
+}
+
+template < size_t block_size, size_t block_x, size_t reorder_num >
+void MAT_MAT::runHipVariantReorder(VariantID vid)
+{
+  setBlockSize(block_size);
+
+  constexpr Index_type tile_size = integer::sqrt(block_size);
+  constexpr Index_type tile_x = block_x;
+  constexpr Index_type tile_y = block_size / block_x;
+  static_assert(tile_x*tile_y == block_size, "Invalid block shape");
+
+  const Index_type run_reps = getRunReps();
+  const Index_type N = m_N;
+
+  dim3 blockDim(tile_x, tile_y, 1);
+  int blocks_y = static_cast<int>(RAJA_DIVIDE_CEILING_INT(N, blockDim.y));
+  dim3 gridDim(reorder_num,
+               static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N, blockDim.x)),
+               static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(blocks_y, reorder_num)));
+  constexpr size_t shmem = 0;
+
+  auto res{getHipResource()};
+
+  MAT_MAT_DATA_SETUP;
+
+  if (vid == Base_HIP) {
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("BASIC_MAT_MAT_1");
+      RPlaunchHipKernel( (mat_mat_reorder<tile_x, tile_y, tile_size>),
+                         gridDim, blockDim,
+                         shmem, res.get_stream(),
+                         N, C, A, B );
+      RP_CALI_SUBKERNEL_END("BASIC_MAT_MAT_1");
+    }
+    stopTimer();
+
+  } else {
+    getCout() << "\n  MAT_MAT : Unknown Hip variant id = " << vid
+              << std::endl;
+  }
+}
+
 template < size_t block_size, size_t block_x >
 void MAT_MAT::runHipVariantImpl(VariantID vid)
 {
@@ -223,6 +288,11 @@ void MAT_MAT::defineHipVariantTunings()
                 vid, "block_"+std::to_string(bsz)+"_"+
                      std::to_string(bx)+"x"+std::to_string(bsz/bx),
                 Index_type(bsz));
+
+            if (vid == Base_HIP && bx == 16u) {
+              addVariantTuning<&MAT_MAT::runHipVariantReorder<bsz, bx, 6>>(
+                  vid, "reorder6_"+std::to_string(bsz));
+            }
           }
         });
       }

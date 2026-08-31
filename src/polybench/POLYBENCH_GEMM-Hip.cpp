@@ -69,6 +69,70 @@ __global__ void poly_gemm_lam(Index_type ni, Index_type nj,
 }
 
 
+template < size_t j_block_size, size_t i_block_size >
+__launch_bounds__(j_block_size*i_block_size)
+__global__ void poly_gemm_reorder(Real_ptr C, Real_ptr A, Real_ptr B,
+                                  Index_type ni, Index_type nj, Index_type nk)
+{
+  Index_type i = (gridDim.z * blockIdx.x + blockIdx.z) * i_block_size + threadIdx.y;
+  Index_type j = blockIdx.y * j_block_size + threadIdx.x;
+
+  if ( i < ni && j < nj ) {
+    POLYBENCH_GEMM_BODY1;
+    for (Index_type k = 0; k < nk; ++k ) {
+      POLYBENCH_GEMM_BODY3;
+    }
+    POLYBENCH_GEMM_BODY4;
+  }
+}
+
+
+template < size_t block_size, size_t block_x, size_t reorder_num >
+void POLYBENCH_GEMM::runHipVariantReorder(VariantID vid)
+{
+  constexpr size_t j_block_sz = block_x;
+  constexpr size_t i_block_sz = block_size / block_x;
+  static_assert(i_block_sz * j_block_sz == block_size, "Invalid block shape");
+
+  setBlockSize(block_size);
+
+  const Index_type run_reps = getRunReps();
+
+  auto res{getHipResource()};
+
+  POLYBENCH_GEMM_DATA_SETUP;
+
+  if ( vid == Base_HIP ) {
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMM_1");
+      dim3 nthreads_per_block(j_block_sz, i_block_sz, 1);
+      int blocks_i = static_cast<int>(RAJA_DIVIDE_CEILING_INT(ni, i_block_sz));
+      dim3 nblocks(reorder_num,
+                   static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nj, j_block_sz)),
+                   static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(blocks_i, reorder_num)));
+      constexpr size_t shmem = 0;
+
+      RPlaunchHipKernel(
+          (poly_gemm_reorder<j_block_sz, i_block_sz>),
+          nblocks, nthreads_per_block,
+          shmem, res.get_stream(),
+          C, A, B,
+          ni, nj, nk );
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMM_1");
+
+    }
+    stopTimer();
+
+  } else {
+      getCout() << "\n  POLYBENCH_GEMM : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+
 template < size_t block_size, size_t block_x >
 void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
 {
@@ -201,6 +265,11 @@ void POLYBENCH_GEMM::defineHipVariantTunings()
                 vid, "block_"+std::to_string(bsz)+"_"+
                      std::to_string(bx)+"x"+std::to_string(bsz/bx),
                 Index_type(bsz));
+
+            if (vid == Base_HIP && bx == 32u) {
+              addVariantTuning<&POLYBENCH_GEMM::runHipVariantReorder<bsz, bx, 6>>(
+                  vid, "reorder6_"+std::to_string(bsz));
+            }
           }
         });
       }
