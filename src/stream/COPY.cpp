@@ -37,6 +37,7 @@ COPY::COPY(const RunParams& params)
   setProblemDimensionality(1);
 
   setUsesFeature( Forall );
+  setProblemSizeAlignment(ProblemSizeAlignment::OneDimensional);
 
   addVariantTunings();
 }

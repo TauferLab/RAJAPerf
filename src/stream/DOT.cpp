@@ -38,6 +38,7 @@ DOT::DOT(const RunParams& params)
 
   setUsesFeature( Forall );
   setUsesFeature( Reduction );
+  setProblemSizeAlignment(ProblemSizeAlignment::OneDimensional);
 
   addVariantTunings();
 }

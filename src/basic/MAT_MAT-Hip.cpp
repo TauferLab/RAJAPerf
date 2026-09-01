@@ -291,7 +291,7 @@ void MAT_MAT::defineHipVariantTunings()
 
             if (vid == Base_HIP && bx == 16u) {
               addVariantTuning<&MAT_MAT::runHipVariantReorder<bsz, bx, 6>>(
-                  vid, "reorder6_"+std::to_string(bsz));
+                  vid, "reorder6_"+std::to_string(bsz), Index_type(bsz));
             }
           }
         });

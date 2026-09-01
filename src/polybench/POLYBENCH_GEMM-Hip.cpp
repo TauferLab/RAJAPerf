@@ -268,7 +268,7 @@ void POLYBENCH_GEMM::defineHipVariantTunings()
 
             if (vid == Base_HIP && bx == 32u) {
               addVariantTuning<&POLYBENCH_GEMM::runHipVariantReorder<bsz, bx, 6>>(
-                  vid, "reorder6_"+std::to_string(bsz));
+                  vid, "reorder6_"+std::to_string(bsz), Index_type(bsz));
             }
           }
         });

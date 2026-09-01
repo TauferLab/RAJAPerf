@@ -462,15 +462,15 @@ void POLYBENCH_GEMVER::defineHipVariantTunings()
 
         if (block_size == 0u) {
           addVariantTuning<&POLYBENCH_GEMVER::runHipVariantImpl<block_size>>(
-              vid, "block_auto");
+              vid, "block_auto", Index_type(0));
         } else {
           addVariantTuning<&POLYBENCH_GEMVER::runHipVariantImpl<block_size>>(
-              vid, "block_"+std::to_string(block_size));
+              vid, "block_"+std::to_string(block_size), Index_type(block_size));
         }
 
         if (vid == Base_HIP) {
           addVariantTuning<&POLYBENCH_GEMVER::runHipVariantReorder<block_size, 6>>(
-              vid, "reorder6_"+std::to_string(block_size));
+              vid, "reorder6_"+std::to_string(block_size), Index_type(block_size));
         }
 
       }
@@ -484,4 +484,3 @@ void POLYBENCH_GEMVER::defineHipVariantTunings()
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_HIP
-
