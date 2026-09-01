@@ -430,7 +430,8 @@ public:
   void runOpenMPVariant(VariantID vid);
 
   template <size_t block_size> void runCudaVariantImpl(VariantID vid);
-  template <size_t block_size> void runHipVariantImpl(VariantID vid);
+  template <size_t block_size, size_t reorder_num>
+  void runHipVariantImpl(VariantID vid);
   template <size_t work_group_size> void runSyclVariantImpl(VariantID vid);
 
 private:

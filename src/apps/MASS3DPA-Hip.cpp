@@ -122,7 +122,7 @@ __global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
   }
 }
 
-template <size_t block_size>
+template <size_t block_size, size_t reorder_num>
 void MASS3DPA::runHipVariantImpl(VariantID vid) {
   constexpr Index_type MD1 = mpa::D1D;
   constexpr Index_type MQ1 = mpa::Q1D;
@@ -166,6 +166,14 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
 
   case RAJA_HIP: {
 
+    constexpr bool reorder = reorder_num > 1u;
+    const Index_type blocks_per_xcd = reorder
+        ? RAJA_DIVIDE_CEILING_INT(num_elem_blocks, reorder_num)
+        : num_elem_blocks;
+    const Index_type num_teams = reorder
+        ? reorder_num * blocks_per_xcd
+        : num_elem_blocks;
+
     constexpr bool async = true;
 
     using launch_policy = RAJA::LaunchPolicy<RAJA::hip_launch_t<async, block_size>>;
@@ -185,11 +193,17 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
       RP_CALI_SUBKERNEL_BEGIN("MASS3DPA_1");
       //clang-format off
       RAJA::launch<launch_policy>( res,
-        RAJA::LaunchParams(RAJA::Teams(num_elem_blocks),
+        RAJA::LaunchParams(RAJA::Teams(num_teams),
                          RAJA::Threads(MQ1, MQ1, TBATCH)),
         [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
-          RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, num_elem_blocks),
-            [&](Index_type elem_block) {
+          RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, num_teams),
+            [&](Index_type physical_elem_block) {
+
+              const Index_type elem_block = reorder
+                  ? blocks_per_xcd * (physical_elem_block % reorder_num) +
+                        physical_elem_block / reorder_num
+                  : physical_elem_block;
+              if (elem_block < num_elem_blocks) {
 
               MASS3DPA_GPU_SMEM_DECL(TBATCH)
 
@@ -383,7 +397,8 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
                 }
               );  // RAJA::loop<inner_z>
 
-            }  // lambda (elem_block)
+              }
+            }  // lambda (physical_elem_block)
           );  // RAJA::loop<outer_x>
 
         }  // outer lambda (ctx)
@@ -405,7 +420,28 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MASS3DPA, Hip, Base_HIP, RAJA_HIP)
+void MASS3DPA::defineHipVariantTunings()
+{
+  for (VariantID vid : {Base_HIP, RAJA_HIP}) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        if (block_size == 0u) {
+          addVariantTuning<&MASS3DPA::runHipVariantImpl<block_size, 1>>(
+              vid, "block_auto", Index_type(0));
+        } else {
+          addVariantTuning<&MASS3DPA::runHipVariantImpl<block_size, 1>>(
+              vid, "block_"+std::to_string(block_size), Index_type(block_size));
+          if (vid == RAJA_HIP) {
+            addVariantTuning<&MASS3DPA::runHipVariantImpl<block_size, 6>>(
+                vid, "reorder6_"+std::to_string(block_size),
+                Index_type(block_size));
+          }
+        }
+      }
+    });
+  }
+}
 
 } // end namespace apps
 } // end namespace rajaperf

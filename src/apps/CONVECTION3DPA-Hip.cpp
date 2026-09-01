@@ -127,7 +127,7 @@ __global__ void Convection3DPA(const Real_ptr Basis, const Real_ptr tBasis,
 
 }
 
-template < size_t block_size >
+template < size_t block_size, size_t reorder_num >
 void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
   setBlockSize(block_size);
 
@@ -162,6 +162,11 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
 
   case RAJA_HIP: {
 
+    constexpr bool reorder = reorder_num > 1u;
+    const Index_type blocks_per_xcd =
+        reorder ? RAJA_DIVIDE_CEILING_INT(NE, reorder_num) : NE;
+    const Index_type num_teams = reorder ? reorder_num * blocks_per_xcd : NE;
+
     constexpr bool async = true;
 
     using launch_policy =
@@ -186,12 +191,18 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
       RP_CALI_SUBKERNEL_BEGIN("CONVECTION3DPA_1");
       //clang-format off
       RAJA::launch<launch_policy>( res,
-          RAJA::LaunchParams(RAJA::Teams(NE),
+          RAJA::LaunchParams(RAJA::Teams(num_teams),
                            RAJA::Threads(conv::Q1D, conv::Q1D, conv::Q1D)),
           [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 
-          RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
-            [&](Index_type e) {
+          RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, num_teams),
+            [&](Index_type physical_e) {
+
+             const Index_type e = reorder
+                 ? blocks_per_xcd * (physical_e % reorder_num) +
+                       physical_e / reorder_num
+                 : physical_e;
+             if (e < NE) {
 
              CONVECTION3DPA_0_GPU;
 
@@ -337,7 +348,8 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
                 } // lambda (dz)
               );  //RAJA::loop<inner_z>
 
-            } // lambda (e)
+             }
+            } // lambda (physical_e)
           ); // RAJA::loop<outer_x>
 
         }  // outer lambda (ctx)
@@ -360,7 +372,22 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(CONVECTION3DPA, Hip, Base_HIP, RAJA_HIP)
+void CONVECTION3DPA::defineHipVariantTunings()
+{
+  for (VariantID vid : {Base_HIP, RAJA_HIP}) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        addVariantTuning<&CONVECTION3DPA::runHipVariantImpl<block_size, 1>>(
+            vid, "block_"+std::to_string(block_size), Index_type(block_size));
+        if (vid == RAJA_HIP) {
+          addVariantTuning<&CONVECTION3DPA::runHipVariantImpl<block_size, 6>>(
+              vid, "reorder6_"+std::to_string(block_size), Index_type(block_size));
+        }
+      }
+    });
+  }
+}
 
 } // end namespace apps
 } // end namespace rajaperf

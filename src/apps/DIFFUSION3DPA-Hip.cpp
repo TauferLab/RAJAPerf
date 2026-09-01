@@ -107,7 +107,7 @@ __global__ void Diffusion3DPA(const Real_ptr Basis,
 
 }
 
-template < size_t block_size >
+template < size_t block_size, size_t reorder_num >
 void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
   setBlockSize(block_size);
 
@@ -142,6 +142,11 @@ void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
 
   case RAJA_HIP: {
 
+    constexpr bool reorder = reorder_num > 1u;
+    const Index_type blocks_per_xcd =
+        reorder ? RAJA_DIVIDE_CEILING_INT(NE, reorder_num) : NE;
+    const Index_type num_teams = reorder ? reorder_num * blocks_per_xcd : NE;
+
     constexpr bool async = true;
 
     using launch_policy =
@@ -166,12 +171,18 @@ void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
       RP_CALI_SUBKERNEL_BEGIN("DIFFUSION3DPA_1");
       //clang-format off
       RAJA::launch<launch_policy>( res,
-          RAJA::LaunchParams(RAJA::Teams(NE),
+          RAJA::LaunchParams(RAJA::Teams(num_teams),
                            RAJA::Threads(diff::Q1D, diff::Q1D, diff::Q1D)),
           [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 
-          RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
-            [&](Index_type e) {
+          RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, num_teams),
+            [&](Index_type physical_e) {
+
+             const Index_type e = reorder
+                 ? blocks_per_xcd * (physical_e % reorder_num) +
+                       physical_e / reorder_num
+                 : physical_e;
+             if (e < NE) {
 
               DIFFUSION3DPA_0_GPU;
 
@@ -335,7 +346,8 @@ void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
                } // lambda (dz)
              );  //RAJA::loop<inner_z>
 
-            } // lambda (e)
+             }
+            } // lambda (physical_e)
           ); // RAJA::loop<outer_x>
 
         }  // outer lambda (ctx)
@@ -358,7 +370,22 @@ void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(DIFFUSION3DPA, Hip, Base_HIP, RAJA_HIP)
+void DIFFUSION3DPA::defineHipVariantTunings()
+{
+  for (VariantID vid : {Base_HIP, RAJA_HIP}) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        addVariantTuning<&DIFFUSION3DPA::runHipVariantImpl<block_size, 1>>(
+            vid, "block_"+std::to_string(block_size), Index_type(block_size));
+        if (vid == RAJA_HIP) {
+          addVariantTuning<&DIFFUSION3DPA::runHipVariantImpl<block_size, 6>>(
+              vid, "reorder6_"+std::to_string(block_size), Index_type(block_size));
+        }
+      }
+    });
+  }
+}
 
 } // end namespace apps
 } // end namespace rajaperf

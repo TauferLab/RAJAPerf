@@ -271,7 +271,7 @@ public:
 
   template <size_t block_size, size_t tune_idx>
   void runCudaVariantImpl(VariantID vid);
-  template <size_t block_size, size_t tune_idx>
+  template <size_t block_size, size_t tune_idx, size_t reorder_num>
   void runHipVariantImpl(VariantID vid);
   template <size_t work_group_size> void runSyclVariantImpl(VariantID vid);
 

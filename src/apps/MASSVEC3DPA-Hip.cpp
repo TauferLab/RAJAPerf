@@ -114,12 +114,17 @@ __launch_bounds__(block_size) __global__ void MassVec3DPALoop(const Real_ptr B,
     /* clang-format off */                                                     \
     RAJA::launch<launch_policy>(                                               \
       res,                                                                     \
-      RAJA::LaunchParams(RAJA::Teams(NE),                                      \
+      RAJA::LaunchParams(RAJA::Teams(num_teams),                               \
       RAJA::Threads(mvpa::Q1D, mvpa::Q1D, mvpa::Q1D)),                         \
       [=] RAJA_HOST_DEVICE(launch_context ctx) {                               \
                                                                                \
-        RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),                    \
-          [&](Index_type e) {                                                  \
+        RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, num_teams),             \
+          [&](Index_type physical_e) {                                         \
+            const Index_type e = reorder                                       \
+                ? blocks_per_xcd * (physical_e % reorder_num) +                \
+                      physical_e / reorder_num                                 \
+                : physical_e;                                                  \
+            if (e < NE) {                                                      \
                                                                                \
             MASSVEC3DPA_0_GPU                                                  \
                                                                                \
@@ -253,7 +258,8 @@ __launch_bounds__(block_size) __global__ void MassVec3DPALoop(const Real_ptr B,
             ctx.teamSync();                                                    \
                                                                                \
             } /* c - dim loop */                                               \
-          } /* lambda (e) */                                                   \
+            }                                                                  \
+          } /* lambda (physical_e) */                                          \
         ); /* RAJA::loop<outer_x> */                                           \
       } /* outer lambda (ctx) */                                               \
     ); /* RAJA::launch */                                                      \
@@ -261,7 +267,7 @@ __launch_bounds__(block_size) __global__ void MassVec3DPALoop(const Real_ptr B,
                                                                                \
   }
 
-template <size_t block_size, size_t tune_idx>
+template <size_t block_size, size_t tune_idx, size_t reorder_num>
 void MASSVEC3DPA::runHipVariantImpl(VariantID vid)
 {
 
@@ -314,6 +320,11 @@ void MASSVEC3DPA::runHipVariantImpl(VariantID vid)
   }
 
   case RAJA_HIP: {
+
+    constexpr bool reorder = reorder_num > 1u;
+    const Index_type blocks_per_xcd =
+        reorder ? RAJA_DIVIDE_CEILING_INT(NE, reorder_num) : NE;
+    const Index_type num_teams = reorder ? reorder_num * blocks_per_xcd : NE;
 
     if constexpr (tune_idx == 0) {
 
@@ -434,24 +445,28 @@ void MASSVEC3DPA::defineHipVariantTunings()
 
         if (vid == Base_HIP) {
 
-          addVariantTuning<&MASSVEC3DPA::runHipVariantImpl<block_size, 0>>(
+          addVariantTuning<&MASSVEC3DPA::runHipVariantImpl<block_size, 0, 1>>(
               vid, "runtime_block_stride_loop_" + std::to_string(block_size), Index_type(block_size));
 
-          addVariantTuning<&MASSVEC3DPA::runHipVariantImpl<block_size, 1>>(
+          addVariantTuning<&MASSVEC3DPA::runHipVariantImpl<block_size, 1, 1>>(
               vid, "direct_" + std::to_string(block_size), Index_type(block_size));
 
         }
 
         if (vid == RAJA_HIP) {
 
-          addVariantTuning<&MASSVEC3DPA::runHipVariantImpl<block_size, 0>>(
+          addVariantTuning<&MASSVEC3DPA::runHipVariantImpl<block_size, 0, 1>>(
               vid, "runtime_block_stride_loop_" + std::to_string(block_size), Index_type(block_size));
 
-          addVariantTuning<&MASSVEC3DPA::runHipVariantImpl<block_size, 1>>(
+          addVariantTuning<&MASSVEC3DPA::runHipVariantImpl<block_size, 1, 1>>(
               vid, "direct_" + std::to_string(block_size), Index_type(block_size));
 
-          addVariantTuning<&MASSVEC3DPA::runHipVariantImpl<block_size, 2>>(
+          addVariantTuning<&MASSVEC3DPA::runHipVariantImpl<block_size, 2, 1>>(
               vid, "cached_block_stride_loop_" + std::to_string(block_size), Index_type(block_size));
+
+          addVariantTuning<&MASSVEC3DPA::runHipVariantImpl<block_size, 2, 6>>(
+              vid, "reorder6_cached_block_stride_loop_" +
+                   std::to_string(block_size), Index_type(block_size));
 
         }
 
