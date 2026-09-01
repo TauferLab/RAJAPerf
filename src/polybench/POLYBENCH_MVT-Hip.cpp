@@ -129,6 +129,78 @@ void POLYBENCH_MVT::runHipVariantReorder(VariantID vid)
     }
     stopTimer();
 
+  } else if (vid == RAJA_HIP) {
+
+    POLYBENCH_MVT_VIEWS_RAJA;
+
+    constexpr bool async = true;
+    using launch_policy = RAJA::LaunchPolicy<RAJA::hip_launch_t<async, block_size>>;
+    using teams_x = RAJA::LoopPolicy<RAJA::hip_block_x_direct>;
+    using teams_z = RAJA::LoopPolicy<RAJA::hip_block_z_direct>;
+    using threads_x = RAJA::LoopPolicy<RAJA::hip_thread_size_x_direct<block_size>>;
+
+    const Index_type blocks = RAJA_DIVIDE_CEILING_INT(N, block_size);
+    const Index_type blocks_z = RAJA_DIVIDE_CEILING_INT(blocks, reorder_num);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_MVT_1");
+      RAJA::launch<launch_policy>(res,
+        RAJA::LaunchParams(RAJA::Teams(reorder_num, 1, blocks_z),
+                           RAJA::Threads(block_size)),
+        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
+          RAJA::loop<teams_z>(ctx, RAJA::RangeSegment(0, blocks_z),
+            [&](Index_type bz) {
+              RAJA::loop<teams_x>(ctx, RAJA::RangeSegment(0, reorder_num),
+                [&](Index_type chiplet) {
+                  RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, block_size),
+                    [&](Index_type tx) {
+                      const Index_type i =
+                          (blocks_z * chiplet + bz) * block_size + tx;
+                      if (i < N) {
+                        POLYBENCH_MVT_BODY1_RAJA_LOCAL;
+                        POLYBENCH_MVT_UNROLL
+                        for (Index_type j = 0; j < N; ++j) {
+                          POLYBENCH_MVT_BODY2_RAJA;
+                        }
+                        POLYBENCH_MVT_BODY3_RAJA;
+                      }
+                    });
+                });
+            });
+        });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_MVT_1");
+
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_MVT_2");
+      RAJA::launch<launch_policy>(res,
+        RAJA::LaunchParams(RAJA::Teams(reorder_num, 1, blocks_z),
+                           RAJA::Threads(block_size)),
+        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
+          RAJA::loop<teams_z>(ctx, RAJA::RangeSegment(0, blocks_z),
+            [&](Index_type bz) {
+              RAJA::loop<teams_x>(ctx, RAJA::RangeSegment(0, reorder_num),
+                [&](Index_type chiplet) {
+                  RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, block_size),
+                    [&](Index_type tx) {
+                      const Index_type i =
+                          (blocks_z * chiplet + bz) * block_size + tx;
+                      if (i < N) {
+                        POLYBENCH_MVT_BODY4_RAJA_LOCAL;
+                        POLYBENCH_MVT_UNROLL
+                        for (Index_type j = 0; j < N; ++j) {
+                          POLYBENCH_MVT_BODY5_RAJA;
+                        }
+                        POLYBENCH_MVT_BODY6_RAJA;
+                      }
+                    });
+                });
+            });
+        });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_MVT_2");
+    }
+    stopTimer();
+
   } else {
       getCout() << "\n  POLYBENCH_MVT : Unknown Hip variant id = " << vid << std::endl;
   }
@@ -236,6 +308,10 @@ void POLYBENCH_MVT::defineHipVariantTunings()
         }
 
         if (vid == Base_HIP) {
+          addVariantTuning<&POLYBENCH_MVT::runHipVariantReorder<block_size, 6>>(
+              vid, "reorder6_"+std::to_string(block_size), Index_type(block_size));
+        }
+        if (vid == RAJA_HIP) {
           addVariantTuning<&POLYBENCH_MVT::runHipVariantReorder<block_size, 6>>(
               vid, "reorder6_"+std::to_string(block_size), Index_type(block_size));
         }

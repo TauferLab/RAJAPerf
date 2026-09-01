@@ -127,6 +127,63 @@ void POLYBENCH_GEMM::runHipVariantReorder(VariantID vid)
     }
     stopTimer();
 
+  } else if (vid == RAJA_HIP) {
+
+    POLYBENCH_GEMM_VIEWS_RAJA;
+
+    constexpr bool async = true;
+    using launch_policy =
+        RAJA::LaunchPolicy<RAJA::hip_launch_t<async, block_size>>;
+    using teams_x = RAJA::LoopPolicy<RAJA::hip_block_x_direct>;
+    using teams_y = RAJA::LoopPolicy<RAJA::hip_block_y_direct>;
+    using teams_z = RAJA::LoopPolicy<RAJA::hip_block_z_direct>;
+    using threads_x =
+        RAJA::LoopPolicy<RAJA::hip_thread_size_x_direct<j_block_sz>>;
+    using threads_y =
+        RAJA::LoopPolicy<RAJA::hip_thread_size_y_direct<i_block_sz>>;
+
+    const Index_type blocks_j = RAJA_DIVIDE_CEILING_INT(nj, j_block_sz);
+    const Index_type blocks_i = RAJA_DIVIDE_CEILING_INT(ni, i_block_sz);
+    const Index_type blocks_z = RAJA_DIVIDE_CEILING_INT(blocks_i, reorder_num);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMM_1");
+      RAJA::launch<launch_policy>(res,
+        RAJA::LaunchParams(RAJA::Teams(reorder_num, blocks_j, blocks_z),
+                           RAJA::Threads(j_block_sz, i_block_sz)),
+        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
+          RAJA::loop<teams_z>(ctx, RAJA::RangeSegment(0, blocks_z),
+            [&](Index_type bz) {
+              RAJA::loop<teams_y>(ctx, RAJA::RangeSegment(0, blocks_j),
+                [&](Index_type bj) {
+                  RAJA::loop<teams_x>(ctx, RAJA::RangeSegment(0, reorder_num),
+                    [&](Index_type chiplet) {
+                      RAJA::loop<threads_y>(ctx, RAJA::RangeSegment(0, i_block_sz),
+                        [&](Index_type ti) {
+                          RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, j_block_sz),
+                            [&](Index_type tj) {
+                              const Index_type i =
+                                  (blocks_z * chiplet + bz) * i_block_sz + ti;
+                              const Index_type j = bj * j_block_sz + tj;
+                              if (i < ni && j < nj) {
+                                POLYBENCH_GEMM_BODY1_RAJA_LOCAL;
+                                POLYBENCH_GEMM_UNROLL
+                                for (Index_type k = 0; k < nk; ++k) {
+                                  POLYBENCH_GEMM_BODY3_RAJA;
+                                }
+                                POLYBENCH_GEMM_BODY4_RAJA;
+                              }
+                            });
+                        });
+                    });
+                });
+            });
+        });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMM_1");
+    }
+    stopTimer();
+
   } else {
       getCout() << "\n  POLYBENCH_GEMM : Unknown Hip variant id = " << vid << std::endl;
   }
@@ -269,6 +326,12 @@ void POLYBENCH_GEMM::defineHipVariantTunings()
             if (vid == Base_HIP && bx == 32u) {
               addVariantTuning<&POLYBENCH_GEMM::runHipVariantReorder<bsz, bx, 6>>(
                   vid, "reorder6_"+std::to_string(bsz), Index_type(bsz));
+            }
+            if (vid == RAJA_HIP && bx == 16u) {
+              addVariantTuning<&POLYBENCH_GEMM::runHipVariantReorder<bsz, bx, 6>>(
+                  vid, "reorder6_"+std::to_string(bsz)+"_"+
+                       std::to_string(bx)+"x"+std::to_string(bsz/bx),
+                  Index_type(bsz));
             }
           }
         });

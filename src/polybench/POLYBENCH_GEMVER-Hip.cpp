@@ -246,6 +246,140 @@ void POLYBENCH_GEMVER::runHipVariantReorder(VariantID vid)
     }
     stopTimer();
 
+  } else if (vid == RAJA_HIP) {
+
+    POLYBENCH_GEMVER_VIEWS_RAJA;
+
+    constexpr bool async = true;
+    using launch_policy =
+        RAJA::LaunchPolicy<RAJA::hip_launch_t<async, block_size>>;
+    using teams_x = RAJA::LoopPolicy<RAJA::hip_block_x_direct>;
+    using teams_y = RAJA::LoopPolicy<RAJA::hip_block_y_direct>;
+    using teams_z = RAJA::LoopPolicy<RAJA::hip_block_z_direct>;
+    using threads_x_2d =
+        RAJA::LoopPolicy<RAJA::hip_thread_size_x_direct<j_block_sz>>;
+    using threads_y_2d =
+        RAJA::LoopPolicy<RAJA::hip_thread_size_y_direct<i_block_sz>>;
+    using threads_x =
+        RAJA::LoopPolicy<RAJA::hip_thread_size_x_direct<block_size>>;
+
+    const Index_type blocks_j = RAJA_DIVIDE_CEILING_INT(n, j_block_sz);
+    const Index_type blocks_i = RAJA_DIVIDE_CEILING_INT(n, i_block_sz);
+    const Index_type blocks_z_2d =
+        RAJA_DIVIDE_CEILING_INT(blocks_i, reorder_num);
+    const Index_type blocks = RAJA_DIVIDE_CEILING_INT(n, block_size);
+    const Index_type blocks_z = RAJA_DIVIDE_CEILING_INT(blocks, reorder_num);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_1");
+      RAJA::launch<launch_policy>(res,
+        RAJA::LaunchParams(RAJA::Teams(reorder_num, blocks_j, blocks_z_2d),
+                           RAJA::Threads(j_block_sz, i_block_sz)),
+        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
+          RAJA::loop<teams_z>(ctx, RAJA::RangeSegment(0, blocks_z_2d),
+            [&](Index_type bz) {
+              RAJA::loop<teams_y>(ctx, RAJA::RangeSegment(0, blocks_j),
+                [&](Index_type bj) {
+                  RAJA::loop<teams_x>(ctx, RAJA::RangeSegment(0, reorder_num),
+                    [&](Index_type chiplet) {
+                      RAJA::loop<threads_y_2d>(ctx, RAJA::RangeSegment(0, i_block_sz),
+                        [&](Index_type ti) {
+                          RAJA::loop<threads_x_2d>(ctx, RAJA::RangeSegment(0, j_block_sz),
+                            [&](Index_type tj) {
+                              const Index_type i =
+                                  (blocks_z_2d * chiplet + bz) * i_block_sz + ti;
+                              const Index_type j = bj * j_block_sz + tj;
+                              if (i < n && j < n) {
+                                POLYBENCH_GEMVER_BODY1_RAJA;
+                              }
+                            });
+                        });
+                    });
+                });
+            });
+        });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_1");
+
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_2");
+      RAJA::launch<launch_policy>(res,
+        RAJA::LaunchParams(RAJA::Teams(reorder_num, 1, blocks_z),
+                           RAJA::Threads(block_size)),
+        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
+          RAJA::loop<teams_z>(ctx, RAJA::RangeSegment(0, blocks_z),
+            [&](Index_type bz) {
+              RAJA::loop<teams_x>(ctx, RAJA::RangeSegment(0, reorder_num),
+                [&](Index_type chiplet) {
+                  RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, block_size),
+                    [&](Index_type tx) {
+                      const Index_type i =
+                          (blocks_z * chiplet + bz) * block_size + tx;
+                      if (i < n) {
+                        POLYBENCH_GEMVER_BODY2_RAJA_LOCAL;
+                        POLYBENCH_GEMVER_UNROLL
+                        for (Index_type j = 0; j < n; ++j) {
+                          POLYBENCH_GEMVER_BODY3_RAJA;
+                        }
+                        POLYBENCH_GEMVER_BODY4_RAJA;
+                      }
+                    });
+                });
+            });
+        });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_2");
+
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_3");
+      RAJA::launch<launch_policy>(res,
+        RAJA::LaunchParams(RAJA::Teams(reorder_num, 1, blocks_z),
+                           RAJA::Threads(block_size)),
+        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
+          RAJA::loop<teams_z>(ctx, RAJA::RangeSegment(0, blocks_z),
+            [&](Index_type bz) {
+              RAJA::loop<teams_x>(ctx, RAJA::RangeSegment(0, reorder_num),
+                [&](Index_type chiplet) {
+                  RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, block_size),
+                    [&](Index_type tx) {
+                      const Index_type i =
+                          (blocks_z * chiplet + bz) * block_size + tx;
+                      if (i < n) {
+                        POLYBENCH_GEMVER_BODY5_RAJA;
+                      }
+                    });
+                });
+            });
+        });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_3");
+
+      RP_CALI_SUBKERNEL_BEGIN("POLYBENCH_GEMVER_4");
+      RAJA::launch<launch_policy>(res,
+        RAJA::LaunchParams(RAJA::Teams(reorder_num, 1, blocks_z),
+                           RAJA::Threads(block_size)),
+        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
+          RAJA::loop<teams_z>(ctx, RAJA::RangeSegment(0, blocks_z),
+            [&](Index_type bz) {
+              RAJA::loop<teams_x>(ctx, RAJA::RangeSegment(0, reorder_num),
+                [&](Index_type chiplet) {
+                  RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, block_size),
+                    [&](Index_type tx) {
+                      const Index_type i =
+                          (blocks_z * chiplet + bz) * block_size + tx;
+                      if (i < n) {
+                        POLYBENCH_GEMVER_BODY6_RAJA_LOCAL;
+                        POLYBENCH_GEMVER_UNROLL
+                        for (Index_type j = 0; j < n; ++j) {
+                          POLYBENCH_GEMVER_BODY7_RAJA;
+                        }
+                        POLYBENCH_GEMVER_BODY8_RAJA;
+                      }
+                    });
+                });
+            });
+        });
+      RP_CALI_SUBKERNEL_END("POLYBENCH_GEMVER_4");
+    }
+    stopTimer();
+
   } else {
       getCout() << "\n  POLYBENCH_GEMVER : Unknown Hip variant id = " << vid << std::endl;
   }
@@ -469,6 +603,10 @@ void POLYBENCH_GEMVER::defineHipVariantTunings()
         }
 
         if (vid == Base_HIP) {
+          addVariantTuning<&POLYBENCH_GEMVER::runHipVariantReorder<block_size, 6>>(
+              vid, "reorder6_"+std::to_string(block_size), Index_type(block_size));
+        }
+        if (vid == RAJA_HIP) {
           addVariantTuning<&POLYBENCH_GEMVER::runHipVariantReorder<block_size, 6>>(
               vid, "reorder6_"+std::to_string(block_size), Index_type(block_size));
         }
