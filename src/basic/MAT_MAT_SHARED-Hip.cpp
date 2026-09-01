@@ -47,6 +47,107 @@ __global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A,
   MAT_MAT_SHARED_BODY_4(tile_size)
 }
 
+template < size_t block_size, size_t reorder_num >
+void MAT_MAT_SHARED::runHipVariantReorder(VariantID vid)
+{
+  setBlockSize(block_size);
+
+  constexpr Index_type tile_size = integer::sqrt(block_size);
+  static_assert(tile_size*tile_size == block_size, "Invalid block_size");
+
+  const Index_type run_reps = getRunReps();
+  const Index_type N = m_N;
+  const Index_type Nx = RAJA_DIVIDE_CEILING_INT(N, tile_size);
+  const Index_type Ny = RAJA_DIVIDE_CEILING_INT(N, tile_size);
+  const Index_type Nz = RAJA_DIVIDE_CEILING_INT(Ny, reorder_num);
+
+  auto res{getHipResource()};
+
+  MAT_MAT_SHARED_DATA_SETUP;
+
+  if (vid == RAJA_HIP) {
+
+    constexpr bool async = true;
+    using launch_policy =
+        RAJA::LaunchPolicy<RAJA::hip_launch_t<async, block_size>>;
+    using teams_x = RAJA::LoopPolicy<RAJA::hip_block_x_direct>;
+    using teams_y = RAJA::LoopPolicy<RAJA::hip_block_y_direct>;
+    using teams_z = RAJA::LoopPolicy<RAJA::hip_block_z_direct>;
+    using threads_x =
+        RAJA::LoopPolicy<RAJA::hip_thread_size_x_direct<tile_size>>;
+    using threads_y =
+        RAJA::LoopPolicy<RAJA::hip_thread_size_y_direct<tile_size>>;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("MAT_MAT_SHARED_1");
+      RAJA::launch<launch_policy>(res,
+        RAJA::LaunchParams(RAJA::Teams(reorder_num, Nx, Nz),
+                           RAJA::Threads(tile_size, tile_size)),
+        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
+          RAJA::loop<teams_z>(ctx, RAJA::RangeSegment(0, Nz),
+            [&](Index_type bz) {
+              RAJA::loop<teams_y>(ctx, RAJA::RangeSegment(0, Nx),
+                [&](Index_type bx) {
+                  RAJA::loop<teams_x>(ctx, RAJA::RangeSegment(0, reorder_num),
+                    [&](Index_type chiplet) {
+                      const Index_type by = Nz * chiplet + bz;
+
+                      MAT_MAT_SHARED_BODY_0(tile_size)
+
+                      RAJA::loop<threads_y>(ctx, RAJA::RangeSegment(0, tile_size),
+                        [&](Index_type ty) {
+                          RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, tile_size),
+                            [&](Index_type tx) {
+                              MAT_MAT_SHARED_BODY_1(tile_size)
+                            });
+                        });
+
+                      for (Index_type k = 0;
+                           k < (tile_size + N - 1) / tile_size; ++k) {
+                        RAJA::loop<threads_y>(ctx, RAJA::RangeSegment(0, tile_size),
+                          [&](Index_type ty) {
+                            RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, tile_size),
+                              [&](Index_type tx) {
+                                MAT_MAT_SHARED_BODY_2(tile_size)
+                              });
+                          });
+
+                        ctx.teamSync();
+
+                        RAJA::loop<threads_y>(ctx, RAJA::RangeSegment(0, tile_size),
+                          [&](Index_type ty) {
+                            RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, tile_size),
+                              [&](Index_type tx) {
+                                MAT_MAT_SHARED_BODY_3(tile_size)
+                              });
+                          });
+
+                        ctx.teamSync();
+                      }
+
+                      RAJA::loop<threads_y>(ctx, RAJA::RangeSegment(0, tile_size),
+                        [&](Index_type ty) {
+                          RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, tile_size),
+                            [&](Index_type tx) {
+                              MAT_MAT_SHARED_BODY_4(tile_size)
+                            });
+                        });
+                    });
+                });
+            });
+        });
+      RP_CALI_SUBKERNEL_END("MAT_MAT_SHARED_1");
+    }
+    stopTimer();
+
+  } else {
+    getCout() << "\n  MAT_MAT_SHARED : Unknown Hip variant id = " << vid
+              << std::endl;
+  }
+}
+
 template < size_t block_size >
 void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
 {
@@ -288,7 +389,35 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MAT_MAT_SHARED, Hip, Base_HIP, Lambda_HIP, RAJA_HIP)
+void MAT_MAT_SHARED::defineHipVariantTunings()
+{
+  for (VariantID vid : {Base_HIP, Lambda_HIP, RAJA_HIP}) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        if (block_size == 0u) {
+          addVariantTuning<&MAT_MAT_SHARED::runHipVariantImpl<block_size>>(
+              vid, "block_auto", Index_type(0));
+        } else {
+          addVariantTuning<&MAT_MAT_SHARED::runHipVariantImpl<block_size>>(
+              vid, "block_"+std::to_string(block_size),
+              Index_type(block_size));
+        }
+
+        constexpr size_t bsz = decltype(block_size)::value;
+        if constexpr (bsz > 0u) {
+          constexpr size_t tile_size = integer::sqrt(bsz);
+          if (vid == RAJA_HIP) {
+            addVariantTuning<&MAT_MAT_SHARED::runHipVariantReorder<bsz, 6>>(
+                vid, "reorder6_"+std::to_string(bsz)+"_"+
+                     std::to_string(tile_size)+"x"+std::to_string(tile_size),
+                Index_type(bsz));
+          }
+        }
+      }
+    });
+  }
+}
 
 } // end namespace basic
 } // end namespace rajaperf
