@@ -399,8 +399,11 @@ void MAT_MAT_SHARED::defineHipVariantTunings()
           addVariantTuning<&MAT_MAT_SHARED::runHipVariantImpl<block_size>>(
               vid, "block_auto", Index_type(0));
         } else {
+          constexpr size_t bsz = decltype(block_size)::value;
+          constexpr size_t tile_size = integer::sqrt(bsz);
           addVariantTuning<&MAT_MAT_SHARED::runHipVariantImpl<block_size>>(
-              vid, "block_"+std::to_string(block_size),
+              vid, "block_"+std::to_string(bsz)+"_"+
+                   std::to_string(tile_size)+"x"+std::to_string(tile_size),
               Index_type(block_size));
         }
 
