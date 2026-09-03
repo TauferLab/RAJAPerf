@@ -140,6 +140,7 @@ enum KernelID {
   Stream_DOT,
   Stream_MUL,
   Stream_TRIAD,
+  Stream_TRIAD_SHARED,
 
 //
 // Apps kernels...
