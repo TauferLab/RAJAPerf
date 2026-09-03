@@ -86,12 +86,18 @@ blt_add_library(
           MASS3DEA-Seq.cpp
           MASS3DEA-OMP.cpp
           MASS3DEA-Sycl.cpp
+          MASS3DEA_NOSHARED.cpp
+          MASS3DEA_NOSHARED-Cuda.cpp
+          MASS3DEA_NOSHARED-Hip.cpp
           MASS3DPA.cpp
           MASS3DPA-Cuda.cpp
           MASS3DPA-Hip.cpp
           MASS3DPA-Seq.cpp
           MASS3DPA-OMP.cpp
           MASS3DPA-Sycl.cpp
+          MASS3DPA_NOSHARED.cpp
+          MASS3DPA_NOSHARED-Cuda.cpp
+          MASS3DPA_NOSHARED-Hip.cpp
           MASS3DPA_ATOMIC.cpp
           MASS3DPA_ATOMIC-Cuda.cpp
           MASS3DPA_ATOMIC-Hip.cpp
