@@ -91,6 +91,7 @@
 // Apps kernels...
 //
 #include "apps/CONVECTION3DPA.hpp"
+#include "apps/CONVECTION3DPA_NOSHARED.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/DIFFUSION3DPA.hpp"
 #include "apps/EDGE3D.hpp"
@@ -255,6 +256,7 @@ static const std::string KernelNames [] =
 // Apps kernels...
 //
   std::string("Apps_CONVECTION3DPA"),
+  std::string("Apps_CONVECTION3DPA_NOSHARED"),
   std::string("Apps_DEL_DOT_VEC_2D"),
   std::string("Apps_DIFFUSION3DPA"),
   std::string("Apps_EDGE3D"),
@@ -1181,6 +1183,10 @@ KernelBase* getKernelObject(KernelID kid,
 //
     case Apps_CONVECTION3DPA : {
        kernel = new apps::CONVECTION3DPA(run_params);
+       break;
+    }
+    case Apps_CONVECTION3DPA_NOSHARED : {
+       kernel = new apps::CONVECTION3DPA_NOSHARED(run_params);
        break;
     }
 

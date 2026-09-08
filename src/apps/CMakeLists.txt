@@ -16,6 +16,9 @@ blt_add_library(
           CONVECTION3DPA-Seq.cpp
           CONVECTION3DPA-OMP.cpp
           CONVECTION3DPA-Sycl.cpp
+          CONVECTION3DPA_NOSHARED.cpp
+          CONVECTION3DPA_NOSHARED-Cuda.cpp
+          CONVECTION3DPA_NOSHARED-Hip.cpp
           DEL_DOT_VEC_2D.cpp
           DEL_DOT_VEC_2D-Seq.cpp
           DEL_DOT_VEC_2D-Hip.cpp

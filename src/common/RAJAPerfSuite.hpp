@@ -146,6 +146,7 @@ enum KernelID {
 // Apps kernels...
 //
   Apps_CONVECTION3DPA,
+  Apps_CONVECTION3DPA_NOSHARED,
   Apps_DEL_DOT_VEC_2D,
   Apps_DIFFUSION3DPA,
   Apps_EDGE3D,
