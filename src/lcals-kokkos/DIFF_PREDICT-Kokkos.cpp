@@ -7,6 +7,13 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+/*
+    NOTE: Indexing representation is different in the Kokkos variant, despite
+          mapping to the same udnerlaying elemetns. Other variants shift px/cx 
+          back by 4 * offset and then compensate for that in the body with indices
+          starting at 4.
+*/
+
 #include "DIFF_PREDICT.hpp"
 
 #if defined(RUN_KOKKOS)
@@ -25,10 +32,7 @@ void DIFF_PREDICT::runKokkosVariant(VariantID vid) {
 
   // DIFF_PREDICT_DATA_SETUP shifts both pointers back by offset * 4, so
   // px + offset * 4 is m_px (10 * iend elements) and cx + offset * 4 is
-  // m_cx (iend elements). Wrap the allocations, not the shifted pointers:
-  // getViewFromPointer copies the whole extent it is given, in both
-  // directions. The body only touches px columns 4..13 and cx column 4,
-  // so the column index is rebased by 4 below.
+  // m_cx (iend elements)
 
   auto px_flat_view = getViewFromPointer(px + offset * 4, iend * 10);
   auto cx_view = getViewFromPointer(cx + offset * 4, iend);
