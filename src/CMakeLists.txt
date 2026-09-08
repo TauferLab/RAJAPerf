@@ -56,6 +56,7 @@ blt_add_executable(
   apps/DEL_DOT_VEC_2D-OMPTarget.cpp
   apps/DIFFUSION3DPA.cpp
   apps/DIFFUSION3DPA-Seq.cpp
+  apps/DIFFUSION3DPA_NOSHARED.cpp
   apps/EDGE3D.cpp
   apps/EDGE3D-Seq.cpp
   apps/EDGE3D-OMPTarget.cpp
