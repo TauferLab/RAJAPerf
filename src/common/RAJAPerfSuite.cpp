@@ -44,6 +44,7 @@
 #include "basic/REDUCE_STRUCT.hpp"
 #include "basic/TRAP_INT.hpp"
 #include "basic/MULTI_REDUCE.hpp"
+#include "basic/POINTER_CHASE.hpp"
 
 //
 // Lcals kernels...
@@ -210,6 +211,7 @@ static const std::string KernelNames [] =
   std::string("Basic_REDUCE_STRUCT"),
   std::string("Basic_TRAP_INT"),
   std::string("Basic_MULTI_REDUCE"),
+  std::string("Basic_POINTER_CHASE"),
 
 //
 // Lcals kernels...
@@ -1045,6 +1047,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_MULTI_REDUCE : {
        kernel = new basic::MULTI_REDUCE(run_params);
+       break;
+    }
+    case Basic_POINTER_CHASE : {
+       kernel = new basic::POINTER_CHASE(run_params);
        break;
     }
 
