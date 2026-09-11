@@ -3,79 +3,43 @@
 
 #include "MASS3DPA.hpp"
 
-namespace rajaperf { namespace mass3dpa_noshared {
-RAJA_HOST_DEVICE RAJA_INLINE
-void apply(const Real_type* RAJA_RESTRICT B,
-           const Real_type* RAJA_RESTRICT Bt,
-           const Real_type* RAJA_RESTRICT D,
-           const Real_type* RAJA_RESTRICT X,
-           Real_type* RAJA_RESTRICT Y, Index_type e)
-{
-  constexpr Index_type MD1 = mpa::D1D;
-  constexpr Index_type MQ1 = mpa::Q1D;
-  constexpr Index_type MDQ = MQ1 > MD1 ? MQ1 : MD1;
-  static_assert(MDQ * MDQ * MDQ <= 8,
-                "MASS3DPA_NOSHARED private arrays exceed eight entries");
-  Real_type a[MDQ * MDQ * MDQ];
-  Real_type b[MDQ * MDQ * MDQ];
+// This kernel uses the MASS3DPA algorithm, thread decomposition, arithmetic,
+// and synchronization. It relocates only the scratch storage from team shared
+// memory to a global workspace, isolating the cost of the storage location.
 
-  for (Index_type dz = 0; dz < MD1; ++dz)
-    for (Index_type dy = 0; dy < MD1; ++dy)
-      for (Index_type dx = 0; dx < MD1; ++dx)
-        a[dz * MD1 * MD1 + dy * MD1 + dx] =
-            X[e * MD1 * MD1 * MD1 + dz * MD1 * MD1 + dy * MD1 + dx];
+namespace mpa_ns {
+constexpr RAJA::Index_type MDQ = (mpa::Q1D > mpa::D1D) ? mpa::Q1D : mpa::D1D;
+constexpr RAJA::Index_type SCRATCH_ELEM = 2 * MDQ * MDQ * MDQ;
+constexpr RAJA::Index_type SCRATCH_BLOCK = mpa::Q1D * mpa::D1D;
+} // namespace mpa_ns
 
-  for (Index_type dz = 0; dz < MD1; ++dz)
-    for (Index_type dy = 0; dy < MD1; ++dy)
-      for (Index_type qx = 0; qx < MQ1; ++qx) {
-        Real_type v = 0.0;
-        for (Index_type dx = 0; dx < MD1; ++dx)
-          v += a[dz * MD1 * MD1 + dy * MD1 + dx] * B[qx + MQ1 * dx];
-        b[dz * MD1 * MQ1 + dy * MQ1 + qx] = v;
-      }
-  for (Index_type dz = 0; dz < MD1; ++dz)
-    for (Index_type qy = 0; qy < MQ1; ++qy)
-      for (Index_type qx = 0; qx < MQ1; ++qx) {
-        Real_type v = 0.0;
-        for (Index_type dy = 0; dy < MD1; ++dy)
-          v += b[dz * MD1 * MQ1 + dy * MQ1 + qx] * B[qy + MQ1 * dy];
-        a[dz * MQ1 * MQ1 + qy * MQ1 + qx] = v;
-      }
-  for (Index_type qz = 0; qz < MQ1; ++qz)
-    for (Index_type qy = 0; qy < MQ1; ++qy)
-      for (Index_type qx = 0; qx < MQ1; ++qx) {
-        Real_type v = 0.0;
-        for (Index_type dz = 0; dz < MD1; ++dz)
-          v += a[dz * MQ1 * MQ1 + qy * MQ1 + qx] * B[qz + MQ1 * dz];
-        b[qz * MQ1 * MQ1 + qy * MQ1 + qx] =
-            v * D[e * MQ1 * MQ1 * MQ1 + qz * MQ1 * MQ1 + qy * MQ1 + qx];
-      }
-  for (Index_type qz = 0; qz < MQ1; ++qz)
-    for (Index_type qy = 0; qy < MQ1; ++qy)
-      for (Index_type dx = 0; dx < MD1; ++dx) {
-        Real_type v = 0.0;
-        for (Index_type qx = 0; qx < MQ1; ++qx)
-          v += b[qz * MQ1 * MQ1 + qy * MQ1 + qx] * Bt[qx + MD1 * dx];
-        a[qz * MQ1 * MD1 + qy * MD1 + dx] = v;
-      }
-  for (Index_type qz = 0; qz < MQ1; ++qz)
-    for (Index_type dy = 0; dy < MD1; ++dy)
-      for (Index_type dx = 0; dx < MD1; ++dx) {
-        Real_type v = 0.0;
-        for (Index_type qy = 0; qy < MQ1; ++qy)
-          v += a[qz * MQ1 * MD1 + qy * MD1 + dx] * Bt[qy + MD1 * dy];
-        b[qz * MD1 * MD1 + dy * MD1 + dx] = v;
-      }
-  for (Index_type dz = 0; dz < MD1; ++dz)
-    for (Index_type dy = 0; dy < MD1; ++dy)
-      for (Index_type dx = 0; dx < MD1; ++dx) {
-        Real_type v = 0.0;
-        for (Index_type qz = 0; qz < MQ1; ++qz)
-          v += b[qz * MD1 * MD1 + dy * MD1 + dx] * Bt[qz + MD1 * dz];
-        Y[e * MD1 * MD1 * MD1 + dz * MD1 * MD1 + dy * MD1 + dx] += v;
-      }
-}
-} } // namespace rajaperf::mass3dpa_noshared
+#define MASS3DPA_NOSHARED_SMEM_DECL(TBATCH, elem_block)                        \
+  constexpr Index_type MDQ = (MQ1 > MD1) ? MQ1 : MD1;                         \
+  Real_ptr sDQ = Workspace + mpa_ns::SCRATCH_ELEM * NE +                      \
+                 mpa_ns::SCRATCH_BLOCK * (elem_block);                        \
+  Real_type(*Bsmem)[MD1] = (Real_type(*)[MD1])sDQ;                            \
+  Real_type(*Btsmem)[MQ1] = (Real_type(*)[MQ1])sDQ;                           \
+  Real_ptr sm0_base = Workspace;                                              \
+  Real_ptr sm1_base = Workspace + MDQ * MDQ * MDQ;
+
+#define MASS3DPA_NOSHARED_SMEM_SLICE(e)                                       \
+  Real_ptr sm0 = sm0_base + mpa_ns::SCRATCH_ELEM * (e);                       \
+  Real_ptr sm1 = sm1_base + mpa_ns::SCRATCH_ELEM * (e);                       \
+  Real_type(*Xsmem)[MD1][MD1] = (Real_type(*)[MD1][MD1])sm0;                  \
+  Real_type(*DDQ)[MD1][MQ1] = (Real_type(*)[MD1][MQ1])sm1;                    \
+  Real_type(*DQQ)[MQ1][MQ1] = (Real_type(*)[MQ1][MQ1])sm0;                    \
+  Real_type(*QQQ)[MQ1][MQ1] = (Real_type(*)[MQ1][MQ1])sm1;                    \
+  Real_type(*QQD)[MQ1][MD1] = (Real_type(*)[MQ1][MD1])sm0;                    \
+  Real_type(*QDD)[MD1][MD1] = (Real_type(*)[MD1][MD1])sm1;
+
+#define MASS3DPA_NOSHARED_DATA_SETUP                                          \
+  Real_ptr B = m_B;                                                           \
+  Real_ptr Bt = m_Bt;                                                         \
+  Real_ptr D = m_D;                                                           \
+  Real_ptr X = m_X;                                                           \
+  Real_ptr Y = m_Y;                                                           \
+  Real_ptr Workspace = m_Workspace;                                           \
+  Index_type NE = m_NE;
 
 namespace rajaperf {
 class RunParams;
@@ -104,15 +68,18 @@ public:
   void runHipVariantImpl(VariantID vid);
 
 private:
-  static const size_t default_gpu_block_size = 64;
+  static const size_t default_gpu_block_size =
+      mpa::Q1D * mpa::Q1D * mpa::TBATCH;
   using gpu_block_sizes_type =
-      integer::make_gpu_block_size_list_type<default_gpu_block_size>;
+      integer::make_gpu_block_size_list_type<default_gpu_block_size,
+                                             MASS3DPAValidGPUBlockSize>;
 
   Real_ptr m_B;
   Real_ptr m_Bt;
   Real_ptr m_D;
   Real_ptr m_X;
   Real_ptr m_Y;
+  Real_ptr m_Workspace;
   Index_type m_NE;
 };
 

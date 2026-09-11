@@ -50,7 +50,6 @@ blt_add_executable(
   apps/CONVECTION3DPA.cpp
   apps/CONVECTION3DPA-Seq.cpp
   apps/CONVECTION3DPA_NOSHARED.cpp
-  apps/CONVECTION3DPA_NOSHARED-Seq.cpp
   apps/DEL_DOT_VEC_2D.cpp
   apps/DEL_DOT_VEC_2D-Seq.cpp
   apps/DEL_DOT_VEC_2D-OMPTarget.cpp

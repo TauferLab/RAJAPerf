@@ -1,83 +1,456 @@
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+// Copyright (c) Lawrence Livermore National Security, LLC and other
+// RAJA Project Developers. See top-level LICENSE and COPYRIGHT
+// files for dates and other details. No copyright assignment is required
+// to contribute to RAJA Performance Suite.
+//
+// SPDX-License-Identifier: (BSD-3-Clause)
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
+// Uncomment to add compiler directives loop unrolling
+//#define USE_RAJAPERF_UNROLL
+
 #include "MASS3DPA_NOSHARED.hpp"
+
+#include "RAJA/RAJA.hpp"
+
 #if defined(RAJA_ENABLE_HIP)
+
 #include "common/HipDataUtils.hpp"
+
 #include <iostream>
-namespace rajaperf { namespace apps {
+
+
+namespace rajaperf {
+namespace apps {
 
 template <size_t block_size>
-__launch_bounds__(block_size) __global__
-void Mass3DPANoShared(const Real_type* __restrict__ B,
-                      const Real_type* __restrict__ Bt,
-                      const Real_type* __restrict__ D,
-                      const Real_type* __restrict__ X,
-                      Real_type* __restrict__ Y, Index_type NE)
-{
-  const Index_type e = blockIdx.x * blockDim.x + threadIdx.x;
-  if (e < NE) mass3dpa_noshared::apply(B, Bt, D, X, Y, e);
+  __launch_bounds__(block_size)
+__global__ void Mass3DPANoShared(const Real_ptr B, const Real_ptr Bt,
+                         const Real_ptr D, const Real_ptr X, Real_ptr Y,
+                         Real_ptr Workspace, Index_type NE) {
+  constexpr Index_type MD1 = mpa::D1D;
+  constexpr Index_type MQ1 = mpa::Q1D;
+  static_assert(block_size % (MQ1 * MQ1) == 0u,
+                "MASS3DPA block_size must be divisible by Q1D*Q1D");
+  constexpr Index_type TBATCH =
+      static_cast<Index_type>(block_size / (MQ1 * MQ1));
+
+  const Index_type zbatch = threadIdx.z;
+  const Index_type e = blockIdx.x * blockDim.z + zbatch;
+  const bool valid_e = e < NE;
+
+  MASS3DPA_NOSHARED_SMEM_DECL(TBATCH, blockIdx.x)
+
+  if (valid_e) {
+    MASS3DPA_NOSHARED_SMEM_SLICE(e)
+    GPU_FOREACH_THREAD_INC(dy, y, MD1, MQ1) {
+      GPU_FOREACH_THREAD_INC(dx, x, MD1, MQ1){
+        MASS3DPA_1
+      }
+      GPU_FOREACH_THREAD_INC(dx, x, MQ1, MQ1) {
+        MASS3DPA_2
+      }
+    }
+  }
+  if (threadIdx.z == 0) {
+    GPU_FOREACH_THREAD_INC(dy, y, MD1, MQ1) {
+      GPU_FOREACH_THREAD_INC(dx, x, MQ1, MQ1) {
+        MASS3DPA_2
+      }
+    }
+  }
+  __syncthreads();
+  if (valid_e) {
+    MASS3DPA_NOSHARED_SMEM_SLICE(e)
+    GPU_FOREACH_THREAD_INC(dy, y, MD1, MQ1) {
+      GPU_FOREACH_THREAD_INC(qx, x, MQ1, MQ1) {
+        MASS3DPA_3
+      }
+    }
+  }
+  __syncthreads();
+  if (valid_e) {
+    MASS3DPA_NOSHARED_SMEM_SLICE(e)
+    GPU_FOREACH_THREAD_INC(qy, y, MQ1, MQ1) {
+      GPU_FOREACH_THREAD_INC(qx, x, MQ1, MQ1) {
+        MASS3DPA_4
+      }
+    }
+  }
+  __syncthreads();
+  if (valid_e) {
+    MASS3DPA_NOSHARED_SMEM_SLICE(e)
+    GPU_FOREACH_THREAD_INC(qy, y, MQ1, MQ1) {
+      GPU_FOREACH_THREAD_INC(qx, x, MQ1, MQ1) {
+        MASS3DPA_5
+      }
+    }
+  }
+
+  __syncthreads();
+  if (threadIdx.z == 0) {
+    GPU_FOREACH_THREAD_INC(d, y, MD1, MQ1) {
+      GPU_FOREACH_THREAD_INC(q, x, MQ1, MQ1) {
+        MASS3DPA_6
+      }
+    }
+  }
+
+  __syncthreads();
+  if (valid_e) {
+    MASS3DPA_NOSHARED_SMEM_SLICE(e)
+    GPU_FOREACH_THREAD_INC(qy, y, MQ1, MQ1) {
+      GPU_FOREACH_THREAD_INC(dx, x, MD1, MQ1) {
+        MASS3DPA_7
+      }
+    }
+  }
+  __syncthreads();
+
+  if (valid_e) {
+    MASS3DPA_NOSHARED_SMEM_SLICE(e)
+    GPU_FOREACH_THREAD_INC(dy, y, MD1, MQ1) {
+      GPU_FOREACH_THREAD_INC(dx, x, MD1, MQ1) {
+        MASS3DPA_8
+      }
+    }
+  }
+
+  __syncthreads();
+  if (valid_e) {
+    MASS3DPA_NOSHARED_SMEM_SLICE(e)
+    GPU_FOREACH_THREAD_INC(dy, y, MD1, MQ1) {
+      GPU_FOREACH_THREAD_INC(dx, x, MD1, MQ1) {
+        MASS3DPA_9
+      }
+    }
+  }
 }
 
 template <size_t block_size, size_t reorder_num>
-void MASS3DPA_NOSHARED::runHipVariantImpl(VariantID vid)
-{
+void MASS3DPA_NOSHARED::runHipVariantImpl(VariantID vid) {
+  constexpr Index_type MD1 = mpa::D1D;
+  constexpr Index_type MQ1 = mpa::Q1D;
+  static_assert(block_size % (MQ1 * MQ1) == 0u,
+                "MASS3DPA block_size must be divisible by Q1D*Q1D");
+  constexpr Index_type TBATCH =
+      static_cast<Index_type>(block_size / (MQ1 * MQ1));
   setBlockSize(block_size);
+
   const Index_type run_reps = getRunReps();
+
   auto res{getHipResource()};
-  MASS3DPA_DATA_SETUP;
-  constexpr bool reorder = reorder_num > 1u;
-  const Index_type blocks = RAJA_DIVIDE_CEILING_INT(NE, Index_type(block_size));
-  const Index_type blocks_per_xcd = reorder ? RAJA_DIVIDE_CEILING_INT(blocks, Index_type(reorder_num)) : blocks;
-  const Index_type teams = reorder ? Index_type(reorder_num) * blocks_per_xcd : blocks;
-  startTimer();
-  for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
-    RP_CALI_SUBKERNEL_BEGIN("MASS3DPA_NOSHARED_1");
-    if (vid == Base_HIP) {
-      const Real_type* B_native = B;
-      const Real_type* Bt_native = Bt;
-      const Real_type* D_native = D;
-      const Real_type* X_native = X;
-      RPlaunchHipKernel((Mass3DPANoShared<block_size>), blocks, block_size, 0,
-                        res.get_stream(), B_native, Bt_native, D_native,
-                        X_native, Y, NE);
-    } else if (vid == RAJA_HIP) {
-      using launch_policy = RAJA::LaunchPolicy<RAJA::hip_launch_t<true, block_size>>;
-      using team_policy = RAJA::LoopPolicy<RAJA::hip_block_x_direct>;
-      using thread_policy = RAJA::LoopPolicy<RAJA::hip_thread_x_direct>;
-      RAJA::launch<launch_policy>(res,
-        RAJA::LaunchParams(RAJA::Teams(teams), RAJA::Threads(block_size)),
-        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
-          RAJA::loop<team_policy>(ctx, RAJA::RangeSegment(0, teams), [&](Index_type physical_block) {
-            const Index_type block = reorder ? blocks_per_xcd * (physical_block % reorder_num) + physical_block / reorder_num : physical_block;
-            RAJA::loop<thread_policy>(ctx, RAJA::RangeSegment(0, Index_type(block_size)), [&](Index_type t) {
-              const Index_type e = block * block_size + t;
-              if (e < NE) {
-                const Real_type* RAJA_RESTRICT B_r = B;
-                const Real_type* RAJA_RESTRICT Bt_r = Bt;
-                const Real_type* RAJA_RESTRICT D_r = D;
-                const Real_type* RAJA_RESTRICT X_r = X;
-                Real_type* RAJA_RESTRICT Y_r = Y;
-                mass3dpa_noshared::apply(B_r, Bt_r, D_r, X_r, Y_r, e);
-              }
-            });
-          });
-        });
-    } else {
-      getCout() << "\n MASS3DPA_NOSHARED : Unknown Hip variant id = " << vid << std::endl;
+
+  MASS3DPA_NOSHARED_DATA_SETUP;
+  const Index_type num_elem_blocks =
+      RAJA_DIVIDE_CEILING_INT(NE, static_cast<Index_type>(TBATCH));
+
+  switch (vid) {
+
+  case Base_HIP: {
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("MASS3DPA_NOSHARED_1");
+      dim3 nthreads_per_block(MQ1, MQ1, TBATCH);
+      constexpr size_t shmem = 0;
+
+      RPlaunchHipKernel( (Mass3DPANoShared<block_size>),
+                         num_elem_blocks, nthreads_per_block,
+                         shmem, res.get_stream(),
+                         B, Bt, D, X, Y, Workspace, NE );
+      RP_CALI_SUBKERNEL_END("MASS3DPA_NOSHARED_1");
+
     }
-    RP_CALI_SUBKERNEL_END("MASS3DPA_NOSHARED_1");
+    stopTimer();
+
+    break;
   }
-  stopTimer();
+
+  case RAJA_HIP: {
+
+    constexpr bool reorder = reorder_num > 1u;
+    const Index_type blocks_per_xcd = reorder
+        ? RAJA_DIVIDE_CEILING_INT(num_elem_blocks, reorder_num)
+        : num_elem_blocks;
+    const Index_type num_teams = reorder
+        ? reorder_num * blocks_per_xcd
+        : num_elem_blocks;
+
+    constexpr bool async = true;
+
+    using launch_policy = RAJA::LaunchPolicy<RAJA::hip_launch_t<async, block_size>>;
+
+    using outer_x = RAJA::LoopPolicy<RAJA::hip_block_x_direct>;
+
+    using inner_x = RAJA::LoopPolicy<RAJA::hip_thread_size_x_loop<MQ1>>;
+
+    using inner_y = RAJA::LoopPolicy<RAJA::hip_thread_size_y_loop<MQ1>>;
+
+    using inner_z = RAJA::LoopPolicy<RAJA::hip_thread_size_z_direct<TBATCH>>;
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("MASS3DPA_NOSHARED_1");
+      //clang-format off
+      RAJA::launch<launch_policy>( res,
+        RAJA::LaunchParams(RAJA::Teams(num_teams),
+                         RAJA::Threads(MQ1, MQ1, TBATCH)),
+        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
+          RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, num_teams),
+            [&](Index_type physical_elem_block) {
+
+              const Index_type elem_block = reorder
+                  ? blocks_per_xcd * (physical_elem_block % reorder_num) +
+                        physical_elem_block / reorder_num
+                  : physical_elem_block;
+              if (elem_block < num_elem_blocks) {
+
+              MASS3DPA_NOSHARED_SMEM_DECL(TBATCH, elem_block)
+
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, TBATCH),
+                [&](Index_type zbatch) {
+                  const Index_type e = elem_block * TBATCH + zbatch;
+                  const bool valid_e = e < NE;
+                  if (valid_e) {
+                    MASS3DPA_NOSHARED_SMEM_SLICE(e)
+
+                    RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MD1),
+                      [&](Index_type dy) {
+                        RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MD1),
+                          [&](Index_type dx) {
+                            MASS3DPA_1
+                          }
+                        );  // RAJA::loop<inner_x>
+
+                        RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MQ1),
+                          [&](Index_type dx) {
+                            MASS3DPA_2
+                          }
+                        );  // RAJA::loop<inner_x>
+                      } // lambda (dy)
+                    );  // RAJA::loop<inner_y>
+                  }
+                }
+              );  // RAJA::loop<inner_z>
+
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, 1),
+                [&](Index_type RAJA_UNUSED_ARG(zbatch)) {
+                  RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MD1),
+                    [&](Index_type dy) {
+                      RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MQ1),
+                        [&](Index_type dx) {
+                          MASS3DPA_2
+                        }
+                      );  // RAJA::loop<inner_x>
+                    }
+                  );  // RAJA::loop<inner_y>
+                }
+              );  // RAJA::loop<inner_z>
+
+              ctx.teamSync();
+
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, TBATCH),
+                [&](Index_type zbatch) {
+                  const Index_type e = elem_block * TBATCH + zbatch;
+                  const bool valid_e = e < NE;
+                  if (valid_e) {
+                    MASS3DPA_NOSHARED_SMEM_SLICE(e)
+
+                    RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MD1),
+                      [&](Index_type dy) {
+                        RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MQ1),
+                          [&](Index_type qx) {
+                            MASS3DPA_3
+                          }
+                        );  // RAJA::loop<inner_x>
+                      }
+                    );  // RAJA::loop<inner_y>
+                  }
+                }
+              );  // RAJA::loop<inner_z>
+
+              ctx.teamSync();
+
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, TBATCH),
+                [&](Index_type zbatch) {
+                  const Index_type e = elem_block * TBATCH + zbatch;
+                  const bool valid_e = e < NE;
+                  if (valid_e) {
+                    MASS3DPA_NOSHARED_SMEM_SLICE(e)
+
+                    RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MQ1),
+                      [&](Index_type qy) {
+                        RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MQ1),
+                          [&](Index_type qx) {
+                            MASS3DPA_4
+                          }
+                        );  // RAJA::loop<inner_x>
+                      }
+                    );  // RAJA::loop<inner_y>
+                  }
+                }
+              );  // RAJA::loop<inner_z>
+
+              ctx.teamSync();
+
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, TBATCH),
+                [&](Index_type zbatch) {
+                  const Index_type e = elem_block * TBATCH + zbatch;
+                  const bool valid_e = e < NE;
+                  if (valid_e) {
+                    MASS3DPA_NOSHARED_SMEM_SLICE(e)
+
+                    RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MQ1),
+                      [&](Index_type qy) {
+                        RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MQ1),
+                          [&](Index_type qx) {
+                            MASS3DPA_5
+                          }
+                        );  // RAJA::loop<inner_x>
+                      }
+                    );  // RAJA::loop<inner_y>
+                  }
+                }
+              );  // RAJA::loop<inner_z>
+
+              ctx.teamSync();
+
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, 1),
+                [&](Index_type zbatch) {
+                  const Index_type e = elem_block * TBATCH + zbatch;
+                  MASS3DPA_NOSHARED_SMEM_SLICE(e)
+
+                  RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MD1),
+                    [&](Index_type d) {
+                      RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MQ1),
+                        [&](Index_type q) {
+                          MASS3DPA_6
+                        }
+                      );  // RAJA::loop<inner_x>
+                    }
+                  );  // RAJA::loop<inner_y>
+                }
+              );  // RAJA::loop<inner_z>
+
+              ctx.teamSync();
+
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, TBATCH),
+                [&](Index_type zbatch) {
+                  const Index_type e = elem_block * TBATCH + zbatch;
+                  const bool valid_e = e < NE;
+                  if (valid_e) {
+                    MASS3DPA_NOSHARED_SMEM_SLICE(e)
+
+                    RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MQ1),
+                      [&](Index_type qy) {
+                        RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MD1),
+                          [&](Index_type dx) {
+                            MASS3DPA_7
+                          }
+                        );  // RAJA::loop<inner_x>
+                      }
+                    );  // RAJA::loop<inner_y>
+                  }
+                }
+              );  // RAJA::loop<inner_z>
+
+              ctx.teamSync();
+
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, TBATCH),
+                [&](Index_type zbatch) {
+                  const Index_type e = elem_block * TBATCH + zbatch;
+                  const bool valid_e = e < NE;
+                  if (valid_e) {
+                    MASS3DPA_NOSHARED_SMEM_SLICE(e)
+
+                    RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MD1),
+                      [&](Index_type dy) {
+                        RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MD1),
+                          [&](Index_type dx) {
+                            MASS3DPA_8
+                          }
+                        );  // RAJA::loop<inner_x>
+                      }
+                    );  // RAJA::loop<inner_y>
+                  }
+                }
+              );  // RAJA::loop<inner_z>
+
+              ctx.teamSync();
+
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, TBATCH),
+                [&](Index_type zbatch) {
+                  const Index_type e = elem_block * TBATCH + zbatch;
+                  const bool valid_e = e < NE;
+                  if (valid_e) {
+                    MASS3DPA_NOSHARED_SMEM_SLICE(e)
+
+                    RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MD1),
+                      [&](Index_type dy) {
+                        RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MD1),
+                          [&](Index_type dx) {
+                            MASS3DPA_9
+                          }
+                        );  // RAJA::loop<inner_x>
+                      }
+                    );  // RAJA::loop<inner_y>
+                  }
+                }
+              );  // RAJA::loop<inner_z>
+
+              }
+            }  // lambda (physical_elem_block)
+          );  // RAJA::loop<outer_x>
+
+        }  // outer lambda (ctx)
+      );  // RAJA::launch
+      //clang-format on
+      RP_CALI_SUBKERNEL_END("MASS3DPA_NOSHARED_1");
+
+    }  // loop over kernel reps
+    stopTimer();
+
+    break;
+  }
+
+  default: {
+
+    getCout() << "\n MASS3DPA_NOSHARED : Unknown Hip variant id = " << vid << std::endl;
+    break;
+  }
+  }
 }
 
 void MASS3DPA_NOSHARED::defineHipVariantTunings()
 {
-  for (VariantID vid : {Base_HIP, RAJA_HIP})
+  for (VariantID vid : {Base_HIP, RAJA_HIP}) {
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-      if (run_params.numValidGPUBlockSize() == 0u || run_params.validGPUBlockSize(block_size)) {
-        addVariantTuning<&MASS3DPA_NOSHARED::runHipVariantImpl<block_size, 1>>(vid, "block_" + std::to_string(block_size), Index_type(block_size));
-        if (vid == RAJA_HIP)
-          addVariantTuning<&MASS3DPA_NOSHARED::runHipVariantImpl<block_size, 6>>(vid, "reorder6_" + std::to_string(block_size), Index_type(block_size));
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        if (block_size == 0u) {
+          addVariantTuning<&MASS3DPA_NOSHARED::runHipVariantImpl<block_size, 1>>(
+              vid, "block_auto", Index_type(0));
+        } else {
+          addVariantTuning<&MASS3DPA_NOSHARED::runHipVariantImpl<block_size, 1>>(
+              vid, "block_"+std::to_string(block_size), Index_type(block_size));
+          if (vid == RAJA_HIP) {
+            addVariantTuning<&MASS3DPA_NOSHARED::runHipVariantImpl<block_size, 6>>(
+                vid, "reorder6_"+std::to_string(block_size),
+                Index_type(block_size));
+          }
+        }
       }
     });
+  }
 }
-} }
-#endif
+
+} // end namespace apps
+} // end namespace rajaperf
+
+#endif // RAJA_ENABLE_HIP

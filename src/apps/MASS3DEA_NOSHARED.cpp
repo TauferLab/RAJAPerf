@@ -59,6 +59,17 @@ void MASS3DEA_NOSHARED::setSize(Index_type target_size, Index_type target_reps)
   setItsPerRep( m_NE*mea::D1D*mea::D1D*mea::D1D );
   setKernelsPerRep(1);
 
+  //
+  // Every byte and FLOP count below is deliberately identical to MASS3DEA's,
+  // and the global workspace is excluded from all of them, allocated bytes
+  // included. The two kernels run the same algorithm over the same inputs and
+  // differ only in where the scratch lives; the workspace traffic is the
+  // overhead under study. Identical accounting means every sizing flag
+  // (--size, --memory-allocated, --memory-touched, --memory-moved) gives both
+  // kernels the same problem size, so any pair of runs is directly comparable.
+  // The workspace's real footprint is mea_ns::SCRATCH * m_NE *
+  // sizeof(Real_type) bytes on top of what is reported.
+  //
   setBytesAllocatedPerRep( 1*sizeof(Real_type) * mea::Q1D*mea::D1D + // B
                            1*sizeof(Real_type) * mea::Q1D*mea::Q1D*mea::Q1D*m_NE + // D
                            1*sizeof(Real_type) * ea_mat_entries*m_NE ); // M_e
@@ -82,6 +93,7 @@ void MASS3DEA_NOSHARED::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
   allocAndInitDataConst(m_B, mea::Q1D*mea::D1D, Real_type(1.0), vid);
   allocAndInitDataConst(m_D, mea::Q1D*mea::Q1D*mea::Q1D*m_NE, Real_type(1.0), vid);
   allocAndInitDataConst(m_M, ea_mat_entries*m_NE, Real_type(0.0), vid);
+  allocData(m_Workspace, mea_ns::SCRATCH * m_NE, vid);
 }
 
 void MASS3DEA_NOSHARED::updateChecksum(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
@@ -96,6 +108,7 @@ void MASS3DEA_NOSHARED::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
   deallocData(m_B, vid);
   deallocData(m_D, vid);
   deallocData(m_M, vid);
+  deallocData(m_Workspace, vid);
 }
 
 } // end namespace apps
