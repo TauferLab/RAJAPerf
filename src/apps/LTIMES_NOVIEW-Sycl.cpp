@@ -23,11 +23,8 @@ namespace apps
 {
 
 //
-// Define work-group shape for SYCL execution
+// Define z-g-m work-group shape for SYCL execution
 //
-#define m_g_wg_sz (1)
-#define m_z_wg_sz (1)
-
 #define zgm_m_wg_sz (32)
 #define zgm_g_wg_sz (integer::greater_of_squarest_factor_pair(work_group_size/zgm_m_wg_sz))
 #define zgm_z_wg_sz (integer::lesser_of_squarest_factor_pair(work_group_size/zgm_m_wg_sz))
@@ -53,8 +50,7 @@ void LTIMES_NOVIEW::runSyclVariantImpl(VariantID vid)
     if constexpr (tune_idx == 0) {
 
       sycl::range<3> global_dim(num_z, num_g, num_m);
-      sycl::range<3> wkgroup_dim(m_z_wg_sz, m_g_wg_sz,
-                                static_cast<size_t>(num_m));
+      sycl::range<3> wkgroup_dim(1, 1, static_cast<size_t>(num_m));
 
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
@@ -210,7 +206,7 @@ void LTIMES_NOVIEW::runSyclVariantImpl(VariantID vid)
         RP_CALI_SUBKERNEL_BEGIN("LTIMES_NOVIEW_1");
         RAJA::launch<launch_policy>( res,
             RAJA::LaunchParams(RAJA::Teams(1, g_grid_sz, z_grid_sz),
-                               RAJA::Threads(num_m, m_g_wg_sz, m_z_wg_sz)),
+                               RAJA::Threads(num_m, 1, 1)),
             [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 
               RAJA::loop<z_policy>(ctx, RAJA::RangeSegment(0, num_z),
