@@ -100,6 +100,7 @@ RAJA_INLINE void clip_polygon_ge_0
     ( Real_ptr cin,   // the cut coordinate, can be xin, yin, or zin.
       Real_ptr xin, Real_ptr yin,
       Real_ptr zin, Real_ptr hin, // input coordinates
+      bool const if_z,      // need to compute z coords in first iteration only
       PackedNext &nexta )   // linked list
 {
   Int_type j  = nexta.get_first() ;
@@ -139,14 +140,14 @@ RAJA_INLINE void clip_polygon_ge_0
     Real_type eta = ( 0.0 - cin[jj1] ) / ( cin[j1] - cin[jj1] ) ;
     xin[jr1] = xin[j1] * eta + xin[jj1] * ( 1.0 - eta ) ;
     yin[jr1] = yin[j1] * eta + yin[jj1] * ( 1.0 - eta ) ;
-    zin[jr1] = zin[j1] * eta + zin[jj1] * ( 1.0 - eta ) ;
+    if ( if_z ) { zin[jr1] = zin[j1] * eta + zin[jj1] * ( 1.0 - eta ) ; }
     hin[jr1] = hin[j1] * eta + hin[jj1] * ( 1.0 - eta ) ;
 
     jr2 = nexta.pop_avail() ;      // Insert second crossover point
     eta = ( 0.0 - cin[j2] ) / ( cin[jj2] - cin[j2] ) ;
     xin[jr2] = xin[jj2] * eta + xin[j2] * ( 1.0 - eta ) ;
     yin[jr2] = yin[jj2] * eta + yin[j2] * ( 1.0 - eta ) ;
-    zin[jr2] = zin[jj2] * eta + zin[j2] * ( 1.0 - eta ) ;
+    if ( if_z ) { zin[jr2] = zin[jj2] * eta + zin[j2] * ( 1.0 - eta ) ; }
     hin[jr2] = hin[jj2] * eta + hin[j2] * ( 1.0 - eta ) ;
   }
 
@@ -181,7 +182,8 @@ RAJA_INLINE void clip_polygon_ge_0
 //   Compute volume, moments between polygon and the z=0 plane.
 RAJA_HOST_DEVICE
 RAJA_INLINE void cuda_hex_volpolyh_1poly
-    ( Real_ptr x, Real_ptr y, Real_ptr z,
+    ( Real_ptr x, Real_ptr y, Real_ptr h,
+      bool const proj,
       PackedNext &nexta,
       Real_type &vv,
       Real_type &vx,
@@ -195,13 +197,16 @@ RAJA_INLINE void cuda_hex_volpolyh_1poly
 
   Real_type x0  = x[j0] ;
   Real_type y0  = y[j0] ;
-  Real_type z0  = z[j0] ;
+  Real_type tmp = 1.0 - x0 - y0 ;
+  Real_type z0  = ( proj ) ? tmp : tmp - h[j0] ;
 
   Int_type j1 = nexta.get_next(j0) ;
 
   Real_type x1  = x[j1] ;
   Real_type y1  = y[j1] ;
-  Real_type z1  = z[j1] ;
+  tmp           = 1.0 - x[j1] - y[j1] ;
+  Real_type z1  = ( proj ) ? tmp : tmp - h[j1] ;
+
   Real_type dx1 = x1 - x0 ;
   Real_type dy1 = y1 - y0 ;
 
@@ -211,7 +216,9 @@ RAJA_INLINE void cuda_hex_volpolyh_1poly
 
     Real_type x2  = x[j2] ;
     Real_type y2  = y[j2] ;
-    Real_type z2  = z[j2] ;
+    tmp           = 1.0 - x[j2] - y[j2] ;
+    Real_type z2  = ( proj ) ? tmp : tmp - h[j2] ;
+
     Real_type dx2 = x2 - x0 ;
     Real_type dy2 = y2 - y0 ;
 
@@ -246,12 +253,10 @@ RAJA_INLINE void cuda_intsc_tri_tet
       Real_type &vz_thr )    // z moment contribution for this triangle-tet
 {
   Real_type det, deti ;
+
   Real_type ha[9] ;      // 1 - x - y - z
 
-  Real_type xa[9], ya[9], za[9] ;
-
-  // h2 is clipped first, and the first clip writes to at most za[4].
-  Int_type constexpr h2_offs = 5 ;
+  Real_type xa[9], ya[9], za[5], h2[3] ;
 
   Real_type vv = 0.0, vx = 0.0, vy = 0.0, vz = 0.0 ;  // volume, moments.
 
@@ -315,26 +320,29 @@ RAJA_INLINE void cuda_intsc_tri_tet
   ha[1] = 1.0 - xa[1] - ya[1] - za[1] ;
   ha[2] = 1.0 - xa[2] - ya[2] - za[2] ;
 
-  za[h2_offs+0] = 1.0 - xa[0] - ya[0] ;
-  za[h2_offs+1] = 1.0 - xa[1] - ya[1] ;
-  za[h2_offs+2] = 1.0 - xa[2] - ya[2] ;
+  h2[0] = 1.0 - xa[0] - ya[0] ;
+  h2[1] = 1.0 - xa[1] - ya[1] ;
+  h2[2] = 1.0 - xa[2] - ya[2] ;
 
   //  Initialize triangle and available slots.
   PackedNext nexta ;
   nexta.init ( ) ;
 
   clip_polygon_ge_0
-      ( za+h2_offs, xa, ya, za, ha, nexta ) ;
+      ( h2, xa, ya, za, ha, true, nexta ) ;
+
+  //  No need to compute za in further clips, send nullptr for clarity.
+  double *dummy=nullptr ;
 
   //  Clip on Cartesian faces of the unit tet.
   clip_polygon_ge_0
-      ( xa, xa, ya, za, ha, nexta ) ;
+      ( za, xa, ya, dummy, ha, false, nexta ) ;
 
   clip_polygon_ge_0
-      ( ya, xa, ya, za, ha, nexta ) ;
+      ( xa, xa, ya, dummy, ha, false, nexta ) ;
 
   clip_polygon_ge_0
-      ( za, xa, ya, za, ha, nexta ) ;
+      ( ya, xa, ya, dummy, ha, false, nexta ) ;
 
   PackedNext nexta1 ;
   nexta1.copy ( nexta ) ;
@@ -342,10 +350,10 @@ RAJA_INLINE void cuda_intsc_tri_tet
   //  Clip on h>=0
 
   clip_polygon_ge_0
-      ( ha, xa, ya, za, ha, nexta ) ;
+      ( ha, xa, ya, dummy, ha, false, nexta ) ;
 
-
-  cuda_hex_volpolyh_1poly( xa, ya, za, nexta, vv, vx, vy, vz ) ;
+  // za will be reconstructed from xa, ya, ha for the volume calculation.
+  cuda_hex_volpolyh_1poly( xa, ya, ha, false, nexta, vv, vx, vy, vz ) ;
 
 
   //  In dimensionless transformed coordinates, quantity smaller
@@ -358,16 +366,9 @@ RAJA_INLINE void cuda_intsc_tri_tet
 
   // Clip on h<0
   clip_polygon_ge_0
-      ( ha, xa, ya, za, ha, nexta1 ) ;
+      ( ha, xa, ya, dummy, ha, false, nexta1 ) ;
 
-  //  project to unit tet.
-  j = nexta1.get_first() ;
-  while ( j >= 0 ) {
-    za[j] = 1.0 - xa[j] - ya[j] ;
-    j = nexta1.get_next(j) ;
-  }
-
-  cuda_hex_volpolyh_1poly( xa, ya, za, nexta1, vv, vx, vy, vz ) ;
+  cuda_hex_volpolyh_1poly( xa, ya, ha, true, nexta1, vv, vx, vy, vz ) ;
 
   // Degenerate target tet can lead to incorrect vv from roundoffs.
   //  Ensure the valid range abs(vv) <= 1/6 and abs(vx,vy,vz) <= 1/24,
