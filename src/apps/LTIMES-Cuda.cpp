@@ -250,6 +250,8 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
 
     } else if constexpr (tune_idx == 1) {
 
+      static_assert(zgm_m_block_sz*zgm_g_block_sz*zgm_z_block_sz == block_size,
+                    "Invalid block_size");
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::CudaKernelFixedAsync<zgm_m_block_sz*zgm_g_block_sz*zgm_z_block_sz,
@@ -338,6 +340,8 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
       stopTimer();
     } else if constexpr (tune_idx == 3) {
 
+      static_assert(zgm_m_block_sz*zgm_g_block_sz*zgm_z_block_sz == block_size,
+                    "Invalid block_size");
       constexpr bool async = true;
 
       using launch_policy =
