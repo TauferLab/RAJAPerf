@@ -54,11 +54,13 @@ __global__ void ltimes_noview_block_moments(Real_ptr phidat, Real_ptr elldat, Re
                               Index_type num_d,
                               Index_type num_m, Index_type num_g, Index_type num_z)
 {
+   Index_type m_begin = threadIdx.x;
+   Index_type m_stride = blockDim.x;
    Index_type g = blockIdx.y;
    Index_type z = blockIdx.x;
 
    if (g < num_g && z < num_z) {
-     for (Index_type m = threadIdx.x; m < num_m; m += blockDim.x) {
+     for (Index_type m = m_begin; m < num_m; m += m_stride) {
        for (Index_type d = 0; d < num_d; ++d ) {
          LTIMES_NOVIEW_BODY;
        }
@@ -87,11 +89,13 @@ template < typename Lambda >
 __global__ void ltimes_noview_lam_block_moments(Index_type num_m, Index_type num_g, Index_type num_z,
                                   Lambda body)
 {
+   Index_type m_begin = threadIdx.x;
+   Index_type m_stride = blockDim.x;
    Index_type g = blockIdx.y;
    Index_type z = blockIdx.x;
 
    if (g < num_g && z < num_z) {
-     for (Index_type m = threadIdx.x; m < num_m; m += blockDim.x) {
+     for (Index_type m = m_begin; m < num_m; m += m_stride) {
        body(z, g, m);
      }
    }

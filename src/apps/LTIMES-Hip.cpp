@@ -54,11 +54,13 @@ using namespace ltimes_idx;
 __global__ void ltimes_block_moments(PHI_VIEW phi, ELL_VIEW ell, PSI_VIEW psi,
                        ID num_d, IM num_m, IG num_g, IZ num_z)
 {
+   IM m_begin(threadIdx.x);
+   IM m_stride(blockDim.x);
    IG g(blockIdx.y);
    IZ z(blockIdx.x);
 
    if (g < num_g && z < num_z) {
-     for (IM m(threadIdx.x); m < num_m; m += blockDim.x) {
+     for (IM m(m_begin); m < num_m; m += m_stride) {
        for (ID d(0); d < num_d; ++d ) {
          LTIMES_BODY;
        }
@@ -86,11 +88,13 @@ template < typename Lambda >
 __global__ void ltimes_lam_block_moments(IM num_m, IG num_g, IZ num_z,
                            Lambda body)
 {
+   IM m_begin(threadIdx.x);
+   IM m_stride(blockDim.x);
    IG g(blockIdx.y);
    IZ z(blockIdx.x);
 
    if (g < num_g && z < num_z) {
-     for (IM m(threadIdx.x); m < num_m; m += blockDim.x) {
+     for (IM m(m_begin); m < num_m; m += m_stride) {
        body(z, g, m);
      }
    }
