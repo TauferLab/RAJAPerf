@@ -88,12 +88,10 @@ public:
   template < size_t tune_idx, size_t block_size >
   void runHipVariantZGM(VariantID vid);
 
+  template < size_t tune_idx >
   void runSyclVariantM(VariantID vid);
-  void runSyclVariantLaunchM(VariantID vid);
-  template < size_t work_group_size >
+  template < size_t tune_idx, size_t work_group_size >
   void runSyclVariantZGM(VariantID vid);
-  template < size_t work_group_size >
-  void runSyclVariantLaunchZGM(VariantID vid);
 
   template < size_t tune_idx, size_t block_size = 0 >
   void runCudaVariantImpl(VariantID vid);

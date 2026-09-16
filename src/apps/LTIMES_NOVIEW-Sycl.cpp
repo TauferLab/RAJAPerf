@@ -285,26 +285,16 @@ void LTIMES_NOVIEW::runSyclVariantImpl(VariantID vid)
 }
 
 
+template < size_t tune_idx >
 void LTIMES_NOVIEW::runSyclVariantM(VariantID vid)
 {
-  runSyclVariantImpl<0>(vid);
+  runSyclVariantImpl<tune_idx>(vid);
 }
 
-void LTIMES_NOVIEW::runSyclVariantLaunchM(VariantID vid)
-{
-  runSyclVariantImpl<2>(vid);
-}
-
-template < size_t work_group_size >
+template < size_t tune_idx, size_t work_group_size >
 void LTIMES_NOVIEW::runSyclVariantZGM(VariantID vid)
 {
-  runSyclVariantImpl<1, work_group_size>(vid);
-}
-
-template < size_t work_group_size >
-void LTIMES_NOVIEW::runSyclVariantLaunchZGM(VariantID vid)
-{
-  runSyclVariantImpl<3, work_group_size>(vid);
+  runSyclVariantImpl<tune_idx, work_group_size>(vid);
 }
 
 
@@ -320,15 +310,15 @@ void LTIMES_NOVIEW::defineSyclVariantTunings()
 
       if (vid == RAJA_SYCL) {
 
-        addVariantTuning<&LTIMES_NOVIEW::runSyclVariantM>(
+        addVariantTuning<&LTIMES_NOVIEW::runSyclVariantM<0>>(
             vid, "kernel_m_"+std::to_string(m_work_group_size));
 
-        addVariantTuning<&LTIMES_NOVIEW::runSyclVariantLaunchM>(
+        addVariantTuning<&LTIMES_NOVIEW::runSyclVariantM<2>>(
             vid, "launch_m_"+std::to_string(m_work_group_size));
 
       } else {
 
-        addVariantTuning<&LTIMES_NOVIEW::runSyclVariantM>(
+        addVariantTuning<&LTIMES_NOVIEW::runSyclVariantM<0>>(
             vid, "block_m_"+std::to_string(m_work_group_size));
 
       }
@@ -342,12 +332,12 @@ void LTIMES_NOVIEW::defineSyclVariantTunings()
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(work_group_size)) {
         if (vid == RAJA_SYCL) {
-          addVariantTuning<&LTIMES_NOVIEW::runSyclVariantZGM<work_group_size>>(
+          addVariantTuning<&LTIMES_NOVIEW::runSyclVariantZGM<1, work_group_size>>(
               vid, "kernel_zgm_"+std::to_string(work_group_size));
-          addVariantTuning<&LTIMES_NOVIEW::runSyclVariantLaunchZGM<work_group_size>>(
+          addVariantTuning<&LTIMES_NOVIEW::runSyclVariantZGM<3, work_group_size>>(
               vid, "launch_zgm_"+std::to_string(work_group_size));
         } else {
-          addVariantTuning<&LTIMES_NOVIEW::runSyclVariantZGM<work_group_size>>(
+          addVariantTuning<&LTIMES_NOVIEW::runSyclVariantZGM<1, work_group_size>>(
               vid, "block_zgm_"+std::to_string(work_group_size));
         }
       }
