@@ -136,6 +136,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("LTIMES_NOVIEW_1");
       constexpr size_t shmem = 0;
 
@@ -161,6 +162,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
           num_d, num_m, num_g, num_z );
       }
       RP_CALI_SUBKERNEL_END("LTIMES_NOVIEW_1");
+
     }
     stopTimer();
 
@@ -169,6 +171,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
     startTimer();
     // Loop counter increment uses macro to quiet C++20 compiler warning
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
       RP_CALI_SUBKERNEL_BEGIN("LTIMES_NOVIEW_1");
 
       auto ltimes_noview_lambda = 
@@ -203,6 +206,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
           ltimes_noview_lambda );
       }
       RP_CALI_SUBKERNEL_END("LTIMES_NOVIEW_1");
+
     }
     stopTimer();
 
@@ -228,6 +232,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("LTIMES_NOVIEW_1");
         RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
@@ -241,6 +246,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
           }
         );
         RP_CALI_SUBKERNEL_END("LTIMES_NOVIEW_1");
+
       }
       stopTimer();
 
@@ -264,6 +270,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("LTIMES_NOVIEW_1");
 
         RAJA::kernel_resource<EXEC_POL>(
@@ -278,6 +285,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
           }
         );
         RP_CALI_SUBKERNEL_END("LTIMES_NOVIEW_1");
+
       }
       stopTimer();
 
@@ -299,6 +307,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("LTIMES_NOVIEW_1");
 
         RAJA::launch<launch_policy>( res,
@@ -327,6 +336,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
             } // outer lambda (ctx)
         );    // RAJA::launch
         RP_CALI_SUBKERNEL_END("LTIMES_NOVIEW_1");
+
       } // loop over kernel reps
       stopTimer();
     } else if constexpr (tune_idx == 3) {
@@ -353,6 +363,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
       startTimer();
       // Loop counter increment uses macro to quiet C++20 compiler warning
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
         RP_CALI_SUBKERNEL_BEGIN("LTIMES_NOVIEW_1");
 
         RAJA::launch<launch_policy>( res,
@@ -381,6 +392,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
             } // outer lambda (ctx)
         );    // RAJA::launch
         RP_CALI_SUBKERNEL_END("LTIMES_NOVIEW_1");
+
       } // loop over kernel reps
       stopTimer();
     }
