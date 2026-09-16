@@ -148,13 +148,66 @@ A typical invocation looks like::
   $ ./scripts/lc-builds/run_compiler_matrix.sh toss4_amdclang.sh compiler_list.txt \
       --run-cmd "srun -N1 -n1 -c 64 --" --kernel-file kernels.txt -- --dryrun
 
+In the example above, ``toss4_amdclang.sh`` is *not* added to
+``compiler_list.txt``. Instead, it selects the build-script template that is
+held fixed for the whole run, and each line in ``compiler_list.txt`` provides
+one set of arguments that gets passed to that script (one matrix entry per
+non-comment line). This is useful when you want to sweep compiler versions (or
+other build parameters) while keeping the rest of the build flags consistent.
+
 The trailing ``--`` in ``--run-cmd`` is part of the launcher prefix. It tells
 ``srun`` to stop parsing its own options so the matrix script can append
 ``./bin/raja-perf.exe`` and the RAJAPerf run arguments after it.
 
+``--run-cmd`` is required when the script will run RAJAPerf. It is not required
+if you pass ``--configure-only`` or ``--build-only``.
+
 The compiler list file contains one build configuration per non-comment line.
-If you pass ``from-list`` as the build-script argument, the first token on each
-line names the build script and the remaining tokens are passed to that script.
+The meaning of the tokens on each line is determined by the build script you
+selected.
+
+**Fixed build-script mode (single script for the whole run)**
+
+When the first argument is a build script name (e.g., ``toss4_amdclang.sh``),
+each non-comment line in the list file is treated as arguments to that script.
+For example, ``scripts/lc-builds/toss4_amdclang.sh`` expects::
+
+  <hip_compiler_version> <gpu_arch> [cmake_version] [extra_cmake_args...]
+
+so a corresponding ``compiler_list.txt`` might look like::
+
+  # hip_compiler_version gpu_arch [cmake_version] [extra_cmake_args...]
+  6.4.1 gfx942
+  6.4.1 gfx942 3.27.4 -DRAJA_PERFSUITE_ENABLE_TESTS=On
+
+**from-list mode (mix scripts per entry)**
+
+If you want different build scripts for different entries, pass ``from-list``
+as the build-script argument. In this mode, the first token on each line is the
+build script and the remaining tokens are its arguments::
+
+  $ ./scripts/lc-builds/run_compiler_matrix.sh from-list compiler_matrix.txt \
+      --run-cmd "srun -N1 -n1 -c 64 --" --kernel-file kernels.txt -- --dryrun
+
+Example ``compiler_matrix.txt``::
+
+  # build_script args...
+  toss4_amdclang.sh 6.4.1 gfx942
+  toss4_cray-mpich_amdclang.sh 9.0.1 6.4.2 gfx942
+
+This is the only way to select multiple build scripts in a single matrix run;
+the command line accepts either a single build script (fixed for the run) or
+``from-list``.
+
+.. note:: The scripts in ``scripts/lc-builds`` are primarily examples for
+          LLNL/Livermore Computing environments (modules, Slurm, etc.). The
+          matrix driver is general: you can provide your own build script (or a
+          list of scripts via ``from-list``) as long as the script can be
+          sourced and accepts positional arguments.
+
+For complete options and more examples, see
+``./scripts/lc-builds/run_compiler_matrix.sh --help`` and the worked sweep
+example in ``data/compiler_sweeps/tier1_base_raja_hip_repro.md``.
 
 The generated ``*-kernel-run-data.csv`` files can then be merged and plotted
 with the processing scripts in ``scripts/`` such as
