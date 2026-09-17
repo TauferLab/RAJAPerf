@@ -167,6 +167,8 @@ public:
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
+  template < size_t block_size, size_t reorder_num >
+  void runHipVariantReorder(VariantID vid);
 
 private:
   void check_intsc_volume_moments(Real_const_ptr vv, VariantID vid);

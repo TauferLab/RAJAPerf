@@ -65,6 +65,116 @@ __global__ void intsc_hexhex_hip_fixup_vv_64to72
 }
 
 
+template < size_t block_size, size_t reorder_num >
+void INTSC_HEXHEX::runHipVariantReorder(VariantID vid)
+{
+  static_assert(block_size == default_gpu_block_size,
+                "INTSC_HEXHEX requires 64-thread blocks");
+
+  const Index_type run_reps = getRunReps();
+  const Index_type iend = tri_per_std_intsc * getActualProblemSize();
+
+  const Size_type n_subz_intsc = m_n_subz_intsc;
+  const Size_type nisc_stage = n_subz_intsc;
+  const Size_type n_szpairs = n_subz_intsc;
+  const Size_type n_szgrp =
+      RAJA_DIVIDE_CEILING_INT(n_subz_intsc, fixup_groupsize);
+  const Size_type gsize_fixup =
+      RAJA_DIVIDE_CEILING_INT(n_szgrp, block_size);
+  const Index_type iend_fixup = gsize_fixup * block_size;
+
+  auto res{getHipResource()};
+
+  INTSC_HEXHEX_DATA_SETUP;
+
+  const Size_type grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+  const Index_type blocks_z =
+      RAJA_DIVIDE_CEILING_INT(grid_size, reorder_num);
+  const Index_type fixup_blocks_z =
+      RAJA_DIVIDE_CEILING_INT(gsize_fixup, reorder_num);
+
+  constexpr Size_type shmem = 0;
+  RPlaunchHipKernel( (intsc_hexhex_hip<block_size>),
+                     1, block_size,
+                     shmem, res.get_stream(),
+                     m_dsubz, m_tsubz,
+                     0UL, m_vv_int );
+  RPlaunchHipKernel( (intsc_hexhex_hip_fixup_vv_64to72<block_size>),
+                     1, block_size,
+                     shmem, res.get_stream(),
+                     m_vv_int, 0UL, m_vv_out );
+
+  if (vid == RAJA_HIP) {
+
+    constexpr bool async = true;
+    using launch_policy =
+        RAJA::LaunchPolicy<RAJA::hip_launch_t<async, block_size>>;
+    using teams_x = RAJA::LoopPolicy<RAJA::hip_block_x_direct>;
+    using teams_z = RAJA::LoopPolicy<RAJA::hip_block_z_direct>;
+    using threads_x =
+        RAJA::LoopPolicy<RAJA::hip_thread_size_x_direct<block_size>>;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_1");
+      RAJA::launch<launch_policy>(res,
+        RAJA::LaunchParams(RAJA::Teams(reorder_num, 1, blocks_z),
+                           RAJA::Threads(block_size)),
+        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
+          RAJA::loop<teams_z>(ctx, RAJA::RangeSegment(0, blocks_z),
+            [&](Index_type bz) {
+              RAJA::loop<teams_x>(ctx, RAJA::RangeSegment(0, reorder_num),
+                [&](Index_type chiplet) {
+                  const Index_type blk = blocks_z * chiplet + bz;
+                  if (blk < grid_size) {
+                    RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, block_size),
+                      [&](Index_type thridx) {
+                        RAJA_TEAM_SHARED Real_type vv_reduce[len_vv_reduce];
+                        const Index_type blksize = block_size;
+                        const Index_type ith = blk * blksize + thridx;
+                        Real_ptr vv_int_p = vv_int + 8 * blk;
+                        INTSC_HEXHEX_BODY;
+                      });
+                  }
+                });
+            });
+        });
+      RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_1");
+
+      RP_CALI_SUBKERNEL_BEGIN("INTSC_HEXHEX_2");
+      RAJA::launch<launch_policy>(res,
+        RAJA::LaunchParams(RAJA::Teams(reorder_num, 1, fixup_blocks_z),
+                           RAJA::Threads(block_size)),
+        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
+          RAJA::loop<teams_z>(ctx, RAJA::RangeSegment(0, fixup_blocks_z),
+            [&](Index_type bz) {
+              RAJA::loop<teams_x>(ctx, RAJA::RangeSegment(0, reorder_num),
+                [&](Index_type chiplet) {
+                  const Index_type blk = fixup_blocks_z * chiplet + bz;
+                  if (blk < gsize_fixup) {
+                    RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, block_size),
+                      [&](Index_type thridx) {
+                        const Index_type i = blk * block_size + thridx;
+                        if (i < iend_fixup) {
+                          FIXUP_VV_BODY;
+                        }
+                      });
+                  }
+                });
+            });
+        });
+      RP_CALI_SUBKERNEL_END("INTSC_HEXHEX_2");
+    }
+    stopTimer();
+
+  } else {
+    getCout() << "\n  INTSC_HEXHEX : Unknown Hip variant id = " << vid
+              << std::endl;
+  }
+}
+
+
 template < Size_type block_size >
 void INTSC_HEXHEX::runHipVariantImpl(VariantID vid)
 {
@@ -228,7 +338,30 @@ void INTSC_HEXHEX::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INTSC_HEXHEX, Hip, Base_HIP, Lambda_HIP, RAJA_HIP)
+void INTSC_HEXHEX::defineHipVariantTunings()
+{
+  for (VariantID vid : {Base_HIP, Lambda_HIP, RAJA_HIP}) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        if (block_size == 0u) {
+          addVariantTuning<&INTSC_HEXHEX::runHipVariantImpl<block_size>>(
+              vid, "block_auto", Index_type(0));
+        } else {
+          addVariantTuning<&INTSC_HEXHEX::runHipVariantImpl<block_size>>(
+              vid, "block_"+std::to_string(block_size), Index_type(block_size));
+        }
+      }
+    });
+
+    if (vid == RAJA_HIP &&
+        (run_params.numValidGPUBlockSize() == 0u ||
+         run_params.validGPUBlockSize(64u))) {
+      addVariantTuning<&INTSC_HEXHEX::runHipVariantReorder<64u, 6u>>(
+          vid, "reorder6_64", Index_type(64));
+    }
+  }
+}
 
 } // end namespace apps
 } // end namespace rajaperf
