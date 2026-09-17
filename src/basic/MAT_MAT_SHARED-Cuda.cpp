@@ -289,7 +289,27 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MAT_MAT_SHARED, Cuda, Base_CUDA, Lambda_CUDA, RAJA_CUDA)
+void MAT_MAT_SHARED::defineCudaVariantTunings()
+{
+  for (VariantID vid : {Base_CUDA, Lambda_CUDA, RAJA_CUDA}) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        if (block_size == 0u) {
+          addVariantTuning<&MAT_MAT_SHARED::runCudaVariantImpl<block_size>>(
+              vid, "block_auto", Index_type(0));
+        } else {
+          constexpr size_t bsz = decltype(block_size)::value;
+          constexpr size_t tile_size = integer::sqrt(bsz);
+          addVariantTuning<&MAT_MAT_SHARED::runCudaVariantImpl<block_size>>(
+              vid, "block_"+std::to_string(bsz)+"_"+
+                   std::to_string(tile_size)+"x"+std::to_string(tile_size),
+              Index_type(block_size));
+        }
+      }
+    });
+  }
+}
 
 } // end namespace basic
 } // end namespace rajaperf
