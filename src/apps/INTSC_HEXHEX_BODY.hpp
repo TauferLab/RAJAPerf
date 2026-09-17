@@ -12,153 +12,100 @@
 
 namespace rajaperf {
 
-struct HexHexNext {
-  struct Reference {
-    unsigned long long *pack ;
-    Int_type idx ;
+  struct PackedNext
+  {
+  private:
+    static constexpr Uint64_type bit_width = 4ULL ;
+    static constexpr Uint64_type mask = (1ULL << bit_width) - 1ULL ;
+    Uint64_type pack_next ;
+    Int_type first, avail ;
+
+  public:
+    RAJA_HOST_DEVICE
+    RAJA_INLINE void init ( )
+    {
+      pack_next = 0xF87654F21 ;
+      first = 0 ;
+      avail = 3 ;
+    }
+
 
     RAJA_HOST_DEVICE
-    RAJA_INLINE operator Int_type() const
+    RAJA_INLINE void copy
+        ( PackedNext const &in )
     {
-      return HexHexNext::get(*pack, idx) ;
+      pack_next = in.pack_next ;
+      first     = in.first ;
+      avail     = in.avail ;
+    }
+
+
+    RAJA_HOST_DEVICE
+    RAJA_INLINE void set_first ( Int_type const j )
+    {
+      first = j ;
+    }
+
+
+    RAJA_HOST_DEVICE
+    RAJA_INLINE  Int_type get_first()
+    {
+      return first ;
+    }
+
+
+    //  Return -1 if the four bits are 0xF, terminating the linked list.
+    RAJA_HOST_DEVICE
+    RAJA_INLINE Int_type get_next
+        ( Uint64_type const j )
+    {
+      Int_type jnext = ( pack_next >> j*bit_width ) & mask ;
+      return jnext == mask ? -1 : jnext ;
+    }
+
+
+    RAJA_HOST_DEVICE
+    RAJA_INLINE void set_next
+        ( Uint64_type const j, Int_type const jnext )
+    {
+      // Clear the four bits for the index j.
+      pack_next &= ( ~ (mask << j*bit_width) ) ;
+
+      Uint64_type jnext_bits = jnext & mask ;    // -1 becomes mask
+      pack_next |= jnext_bits << j*bit_width ;   // Sets the four bits
     }
 
     RAJA_HOST_DEVICE
-    RAJA_INLINE Reference& operator=(Int_type const next)
+    RAJA_INLINE Int_type pop_avail ( )
     {
-      HexHexNext::set(*pack, idx, next) ;
-      return *this ;
+      Int_type j = avail ;
+      avail = get_next(avail) ;
+      return j ;
     }
-  };
 
-  unsigned long long pack ;
 
-  RAJA_HOST_DEVICE
-  RAJA_INLINE Int_type operator[](Int_type const idx) const
-  {
-    return get(pack, idx) ;
-  }
+    RAJA_HOST_DEVICE
+    RAJA_INLINE void push_avail
+        ( Int_type const j )
+    {
+      set_next (j, avail) ;
+      avail = j ;
+    }
+  } ;
 
-  RAJA_HOST_DEVICE
-  RAJA_INLINE Reference operator[](Int_type const idx)
-  {
-    return Reference{&pack, idx} ;
-  }
-
-  RAJA_HOST_DEVICE
-  RAJA_INLINE static Int_type get(unsigned long long const pack_in,
-                                  Int_type const idx)
-  {
-    unsigned int const v =
-        static_cast<unsigned int>((pack_in >> (4 * idx)) & 0xFULL);
-
-    return (v == 0xFULL) ? Int_type(-1) : Int_type(v);
-  }
-
-  RAJA_HOST_DEVICE
-  RAJA_INLINE static void set(unsigned long long &pack_in, Int_type const idx,
-                              Int_type const next)
-  {
-    unsigned long long const shift = static_cast<unsigned long long>(4 * idx);
-    unsigned long long const mask = 0xFULL << shift;
-    unsigned long long const v = static_cast<unsigned long long>(
-        next < 0 ? 0xFULL : static_cast<unsigned int>(next));
-
-    pack_in = (pack_in & ~mask) | ((v & 0xFULL) << shift);
-  }
-};
-
-// Initial polygon vertex order with 4 bits per vertex.
-static constexpr HexHexNext HEXHEX_NEXT_INIT = { 0xF87654F21ULL };
-
-struct HexHexScratchArray {
-  Real_ptr data ;
-  Index_type stride ;
-  Index_type lane ;
-
-  RAJA_HOST_DEVICE
-  RAJA_INLINE HexHexScratchArray(Real_ptr const data_in,
-                                 Index_type const stride_in,
-                                 Index_type const lane_in)
-      : data(data_in),
-        stride(stride_in),
-        lane(lane_in)
-  {
-  }
-
-  RAJA_HOST_DEVICE
-  RAJA_INLINE Real_type& operator[](Int_type const i) const
-  {
-    return data[i * stride + lane] ;
-  }
-};
-
-template < Size_type BlockSize >
-struct HexHexScratchStorage {
-  // Element-major layout keeps lanes contiguous for shared-memory accesses.
-  Real_type xdt[3][BlockSize], ydt[3][BlockSize], zdt[3][BlockSize] ;
-  Real_type xtt[4][BlockSize], ytt[4][BlockSize], ztt[4][BlockSize] ;
-  Real_type xa[9][BlockSize], ya[9][BlockSize], za[9][BlockSize] ;
-  Real_type ha[9][BlockSize], h2[9][BlockSize] ;
-};
-
-struct HexHexScratchView {
-  HexHexScratchArray xdt, ydt, zdt ;
-  HexHexScratchArray xtt, ytt, ztt ;
-  HexHexScratchArray xa, ya, za, ha, h2 ;
-
-  template < Size_type BlockSize >
-  RAJA_HOST_DEVICE
-  RAJA_INLINE HexHexScratchView(HexHexScratchStorage<BlockSize> &storage,
-                                Index_type const lane_in)
-      : xdt(&storage.xdt[0][0], static_cast<Index_type>(BlockSize), lane_in),
-        ydt(&storage.ydt[0][0], static_cast<Index_type>(BlockSize), lane_in),
-        zdt(&storage.zdt[0][0], static_cast<Index_type>(BlockSize), lane_in),
-        xtt(&storage.xtt[0][0], static_cast<Index_type>(BlockSize), lane_in),
-        ytt(&storage.ytt[0][0], static_cast<Index_type>(BlockSize), lane_in),
-        ztt(&storage.ztt[0][0], static_cast<Index_type>(BlockSize), lane_in),
-        xa(&storage.xa[0][0], static_cast<Index_type>(BlockSize), lane_in),
-        ya(&storage.ya[0][0], static_cast<Index_type>(BlockSize), lane_in),
-        za(&storage.za[0][0], static_cast<Index_type>(BlockSize), lane_in),
-        ha(&storage.ha[0][0], static_cast<Index_type>(BlockSize), lane_in),
-        h2(&storage.h2[0][0], static_cast<Index_type>(BlockSize), lane_in)
-  {
-  }
-};
-
-RAJA_HOST_DEVICE
-RAJA_INLINE Int_type hexhex_cyc_nod(Int_type const i)
-{
-  return ( i == 0 ) ? 1 :
-         ( i == 1 ) ? 5 :
-         ( i == 2 ) ? 4 :
-         ( i == 3 ) ? 6 :
-         ( i == 4 ) ? 2 :
-         ( i == 5 ) ? 3 : 1 ;
-}
-
-RAJA_HOST_DEVICE
-RAJA_INLINE Int_type hexhex_vert_cyc(Int_type const i)
-{
-  return ( i == 0 ) ? 1 :
-         ( i == 1 ) ? 3 :
-         ( i == 2 ) ? 2 :
-         ( i == 3 ) ? 6 :
-         ( i == 4 ) ? 4 : 5 ;
-}
 
 
 RAJA_HOST_DEVICE
 RAJA_INLINE void clip_polygon_ge_0
-    ( HexHexScratchArray cin,   // the cut coordinate, can be xin, yin, or zin.
-      HexHexScratchArray xin, HexHexScratchArray yin,
-      HexHexScratchArray zin, HexHexScratchArray hin, // input coordinates
-      Int_type &first, Int_type &avail,
-      HexHexNext &next )   // packed linked list
+    ( Real_ptr cin,   // the cut coordinate, can be xin, yin, or zin.
+      Real_ptr xin, Real_ptr yin,
+      Real_ptr zin, Real_ptr hin, // input coordinates
+      bool const if_z,      // need to compute z coords in first iteration only
+      PackedNext &nexta )   // linked list
 {
-  Int_type j  = first ;
+  Int_type j  = nexta.get_first() ;
 
-  Int_type first0 = first ;
+  Int_type first0 = j ;
   Int_type j1 = -1, j2 = -1 ;
   Int_type jj1 = -1, jj2 = -1 ;
 
@@ -167,7 +114,7 @@ RAJA_INLINE void clip_polygon_ge_0
   Real_type clast = c0 ;
 
   while ( j >= 0 ) {
-    Int_type jj = next[j] ;
+    Int_type jj = nexta.get_next(j) ;
     Int_type jp = jj ;       // advancing, jp is -1 at end.
     if ( jj < 0 ) { jj = first0 ; }   // last edge of polygon
 
@@ -189,42 +136,41 @@ RAJA_INLINE void clip_polygon_ge_0
 
   if ( j1 >= 0 ) {   // Insert first crossover point
 
-    jr1 = avail ;
-    avail = next[avail] ;
+    jr1 = nexta.pop_avail() ;
     Real_type eta = ( 0.0 - cin[jj1] ) / ( cin[j1] - cin[jj1] ) ;
     xin[jr1] = xin[j1] * eta + xin[jj1] * ( 1.0 - eta ) ;
     yin[jr1] = yin[j1] * eta + yin[jj1] * ( 1.0 - eta ) ;
-    zin[jr1] = zin[j1] * eta + zin[jj1] * ( 1.0 - eta ) ;
+    if ( if_z ) { zin[jr1] = zin[j1] * eta + zin[jj1] * ( 1.0 - eta ) ; }
     hin[jr1] = hin[j1] * eta + hin[jj1] * ( 1.0 - eta ) ;
 
-    jr2 = avail ;      // Insert second crossover point
-    avail = next[avail] ;
+    jr2 = nexta.pop_avail() ;      // Insert second crossover point
     eta = ( 0.0 - cin[j2] ) / ( cin[jj2] - cin[j2] ) ;
     xin[jr2] = xin[jj2] * eta + xin[j2] * ( 1.0 - eta ) ;
     yin[jr2] = yin[jj2] * eta + yin[j2] * ( 1.0 - eta ) ;
-    zin[jr2] = zin[jj2] * eta + zin[j2] * ( 1.0 - eta ) ;
+    if ( if_z ) { zin[jr2] = zin[jj2] * eta + zin[j2] * ( 1.0 - eta ) ; }
     hin[jr2] = hin[jj2] * eta + hin[j2] * ( 1.0 - eta ) ;
   }
 
-  first = -1 ;
+  Int_type my_first = -1 ;
 
   j = first0 ;
   while ( j >= 0 ) {   // Make removed points available.
-    Int_type jp = next[j] ;
+    Int_type jp = nexta.get_next(j) ;
     if ( cin[j] < 0.0 ) {
-      next[j] = avail ;
-      avail = j ;
-    } else if ( first == -1 ) {
-      first = j ;        // Set first point for output polygon.
+      nexta.push_avail(j) ;
+    } else if ( my_first == -1 ) {
+      // Set first point for output polygon.
+      my_first = j ;
     }
     j = jp ;
   }
+  nexta.set_first ( my_first ) ;
 
 
   if ( j1 >= 0 ) {     // Set linked list for crossover points.
-    next[j1] = jr1 ;
-    next[jr1] = jr2 ;
-    next[jr2] = ( ( clast < 0 ) || ( c00 < 0 ) ) ? -1 : jj2 ;
+    nexta.set_next ( j1 , jr1 ) ;
+    nexta.set_next ( jr1, jr2 ) ;
+    nexta.set_next ( jr2, (( clast < 0 ) || ( c00 < 0 )) ? -1 : jj2 ) ;
   }
 }
 
@@ -236,37 +182,43 @@ RAJA_INLINE void clip_polygon_ge_0
 //   Compute volume, moments between polygon and the z=0 plane.
 RAJA_HOST_DEVICE
 RAJA_INLINE void cuda_hex_volpolyh_1poly
-    ( HexHexScratchArray x, HexHexScratchArray y, HexHexScratchArray z,
-      Int_type const first,
-      HexHexNext const next,
+    ( Real_ptr x, Real_ptr y, Real_ptr h,
+      bool const proj,
+      PackedNext &nexta,
       Real_type &vv,
       Real_type &vx,
       Real_type &vy,
       Real_type &vz )
 {
-  if ( first < 0 ) { return ; }   // No polygon remains after clipping.
+  // No polygon remains after clipping.
+  if ( nexta.get_first() < 0 ) { return ; }
 
-  Int_type j0 = first ;
+  Int_type j0 = nexta.get_first() ;
 
   Real_type x0  = x[j0] ;
   Real_type y0  = y[j0] ;
-  Real_type z0  = z[j0] ;
+  Real_type tmp = 1.0 - x0 - y0 ;
+  Real_type z0  = ( proj ) ? tmp : tmp - h[j0] ;
 
-  Int_type j1 = next[j0] ;
+  Int_type j1 = nexta.get_next(j0) ;
 
   Real_type x1  = x[j1] ;
   Real_type y1  = y[j1] ;
-  Real_type z1  = z[j1] ;
+  tmp           = 1.0 - x[j1] - y[j1] ;
+  Real_type z1  = ( proj ) ? tmp : tmp - h[j1] ;
+
   Real_type dx1 = x1 - x0 ;
   Real_type dy1 = y1 - y0 ;
 
-  Int_type j2 = next[j1] ;
+  Int_type j2 = nexta.get_next(j1) ;
 
   while ( j2 >= 0 ) {   // Vertices
 
     Real_type x2  = x[j2] ;
     Real_type y2  = y[j2] ;
-    Real_type z2  = z[j2] ;
+    tmp           = 1.0 - x[j2] - y[j2] ;
+    Real_type z2  = ( proj ) ? tmp : tmp - h[j2] ;
+
     Real_type dx2 = x2 - x0 ;
     Real_type dy2 = y2 - y0 ;
 
@@ -281,7 +233,7 @@ RAJA_INLINE void cuda_hex_volpolyh_1poly
     x1=x2 ;   y1=y2 ;   z1=z2 ;    // Rotate.
     dx1=dx2 ; dy1=dy2 ;
 
-    j2 = next[j2] ;
+    j2 = nexta.get_next(j2) ;
   }
 }
 
@@ -289,24 +241,22 @@ RAJA_INLINE void cuda_hex_volpolyh_1poly
 
 RAJA_HOST_DEVICE
 RAJA_INLINE void cuda_intsc_tri_tet
-    ( HexHexScratchArray xdt,    // donor triangle coordinates
-      HexHexScratchArray ydt,
-      HexHexScratchArray zdt,
-      HexHexScratchArray xtt,    // target tet coordinates (modified here)
-      HexHexScratchArray ytt,
-      HexHexScratchArray ztt,
+    ( Real_type const (&xdt)[3],    // donor triangle coordinates
+      Real_type const (&ydt)[3],
+      Real_type const (&zdt)[3],
+      Real_type (&xtt)[4],    // target tet coordinates (modified here)
+      Real_type (&ytt)[4],
+      Real_type (&ztt)[4],
       Real_type &vv_thr,     // volume contribution for this triangle-tet
       Real_type &vx_thr,     // x moment contribution for this triangle-tet
       Real_type &vy_thr,     // y moment contribution for this triangle-tet
-      Real_type &vz_thr,     // z moment contribution for this triangle-tet
-      HexHexScratchView &scratch )
+      Real_type &vz_thr )    // z moment contribution for this triangle-tet
 {
   Real_type det, deti ;
-  HexHexScratchArray ha = scratch.ha ;      // 1 - x - y - z
-  HexHexScratchArray xa = scratch.xa ;
-  HexHexScratchArray ya = scratch.ya ;
-  HexHexScratchArray za = scratch.za ;
-  HexHexScratchArray h2 = scratch.h2 ;
+
+  Real_type ha[9] ;      // 1 - x - y - z
+
+  Real_type xa[9], ya[9], za[5], h2[3] ;
 
   Real_type vv = 0.0, vx = 0.0, vy = 0.0, vz = 0.0 ;  // volume, moments.
 
@@ -369,61 +319,68 @@ RAJA_INLINE void cuda_intsc_tri_tet
   ha[0] = 1.0 - xa[0] - ya[0] - za[0] ;
   ha[1] = 1.0 - xa[1] - ya[1] - za[1] ;
   ha[2] = 1.0 - xa[2] - ya[2] - za[2] ;
+
   h2[0] = 1.0 - xa[0] - ya[0] ;
   h2[1] = 1.0 - xa[1] - ya[1] ;
   h2[2] = 1.0 - xa[2] - ya[2] ;
 
   //  Initialize triangle and available slots.
-  HexHexNext next = HEXHEX_NEXT_INIT ;
-
-  Int_type first = 0 ;
-  Int_type avail = 3 ;
+  PackedNext nexta ;
+  nexta.init ( ) ;
 
   clip_polygon_ge_0
-      ( h2, xa, ya, za, ha, first, avail, next ) ;
+      ( h2, xa, ya, za, ha, true, nexta ) ;
+
+  //  No need to compute za in further clips, send nullptr for clarity.
+  double *dummy=nullptr ;
 
   //  Clip on Cartesian faces of the unit tet.
   clip_polygon_ge_0
-      ( xa, xa, ya, za, ha, first, avail, next ) ;
+      ( za, xa, ya, dummy, ha, false, nexta ) ;
 
   clip_polygon_ge_0
-      ( ya, xa, ya, za, ha, first, avail, next ) ;
+      ( xa, xa, ya, dummy, ha, false, nexta ) ;
 
   clip_polygon_ge_0
-      ( za, xa, ya, za, ha, first, avail, next ) ;
+      ( ya, xa, ya, dummy, ha, false, nexta ) ;
 
-  Int_type first1 = first, avail1 = avail;
-  HexHexNext next1 = next ;
+  PackedNext nexta1 ;
+  nexta1.copy ( nexta ) ;
 
   //  Clip on h>=0
 
   clip_polygon_ge_0
-      ( ha, xa, ya, za, ha, first, avail, next ) ;
+      ( ha, xa, ya, dummy, ha, false, nexta ) ;
 
-
-  cuda_hex_volpolyh_1poly( xa, ya, za, first, next, vv, vx, vy, vz ) ;
+  // za will be reconstructed from xa, ya, ha for the volume calculation.
+  cuda_hex_volpolyh_1poly( xa, ya, ha, false, nexta, vv, vx, vy, vz ) ;
 
 
   //  In dimensionless transformed coordinates, quantity smaller
   // than machine epsilon is not significant.
-  Int_type j = first1 ;
+  Int_type j = nexta1.get_first() ;
   while ( j >= 0 ) {
     ha[j] = -ha[j] - 1.0e-50 ;
-    j = next1[j] ;
+    j = nexta1.get_next(j) ;
   }
 
   // Clip on h<0
   clip_polygon_ge_0
-      ( ha, xa, ya, za, ha, first1, avail1, next1 ) ;
+      ( ha, xa, ya, dummy, ha, false, nexta1 ) ;
 
-  //  project to unit tet.
-  j = first1 ;
-  while ( j >= 0 ) {
-    za[j] = 1.0 - xa[j] - ya[j] ;
-    j = next1[j] ;
-  }
+  cuda_hex_volpolyh_1poly( xa, ya, ha, true, nexta1, vv, vx, vy, vz ) ;
 
-  cuda_hex_volpolyh_1poly( xa, ya, za, first1, next1, vv, vx, vy, vz ) ;
+  // Degenerate target tet can lead to incorrect vv from roundoffs.
+  //  Ensure the valid range abs(vv) <= 1/6 and abs(vx,vy,vz) <= 1/24,
+  //  in the unit tet frame.
+  if ( vv < -1.0 ) { vv = -1.0 ; }
+  if ( vv >  1.0 ) { vv =  1.0 ; }
+  if ( vx < -1.0 ) { vx = -1.0 ; }
+  if ( vx >  1.0 ) { vx =  1.0 ; }
+  if ( vy < -1.0 ) { vy = -1.0 ; }
+  if ( vy >  1.0 ) { vy =  1.0 ; }
+  if ( vz < -1.0 ) { vz = -1.0 ; }
+  if ( vz >  1.0 ) { vz =  1.0 ; }
 
   //  Volume, moments of the intersection in the unit tet frame.
   vv *= 0.16666666666666667 ;
@@ -455,8 +412,7 @@ RAJA_INLINE void hex_intsc_subz
       Real_type &vv_thr,     // volume contribution for this triangle-tet
       Real_type &vx_thr,     // x moment contribution for this triangle-tet
       Real_type &vy_thr,     // y moment contribution for this triangle-tet
-      Real_type &vz_thr,     // z moment contribution for this triangle-tet
-      HexHexScratchView &scratch )
+      Real_type &vz_thr )    // z moment contribution for this triangle-tet
 {
   Real_const_ptr yds = xds + 8 ;
   Real_const_ptr zds = yds + 8 ;
@@ -470,23 +426,25 @@ RAJA_INLINE void hex_intsc_subz
   vz_thr = 0.0 ;
 
   Int_type const n_dfacets = 12 ;
+  Int_type const len_cycnod = n_dfacets / 2 + 1 ;
 
   //  coordinates of the donor triangle
-  HexHexScratchArray xdt = scratch.xdt ;
-  HexHexScratchArray ydt = scratch.ydt ;
-  HexHexScratchArray zdt = scratch.zdt ;
+  Real_type xdt[3], ydt[3], zdt[3] ;
 
   {
+    //  cyclic nodes to form facets with node 0.
+    Int_type cyc_nod[len_cycnod] = { 1, 5, 4, 6, 2, 3, 1 } ;
+
     // which subzone vertices form the triangular facet.
     Int_type v0, v1, v2 ;
     if ( dfacet < 6 ) {
       v0 = 0 ;
-      v1 = hexhex_cyc_nod(dfacet) ;
-      v2 = hexhex_cyc_nod(dfacet+1) ;
+      v1 = cyc_nod[dfacet] ;
+      v2 = cyc_nod[dfacet+1] ;
     } else {
       v0 = 7 ;
-      v1 = hexhex_cyc_nod(n_dfacets-dfacet) ;
-      v2 = hexhex_cyc_nod(n_dfacets-dfacet - 1) ;  // reverse order
+      v1 = cyc_nod[n_dfacets-dfacet] ;
+      v2 = cyc_nod[n_dfacets-dfacet - 1] ;  // reverse order
     }
 
     //  Donor triangle coordinates.
@@ -504,19 +462,20 @@ RAJA_INLINE void hex_intsc_subz
 
   //   Set up the target tet and do the intersections.
 
-  HexHexScratchArray xtt = scratch.xtt ;
-  HexHexScratchArray ytt = scratch.ytt ;
-  HexHexScratchArray ztt = scratch.ztt ;
+  Real_type xtt[4], ytt[4], ztt[4] ;
 
   xtt[0] = xts[0] ;
   ytt[0] = yts[0] ;
   ztt[0] = zts[0] ;
 
-  Int_type v1 = hexhex_vert_cyc(ttet) ;
+  //  subzone vertices that form the cycle for tets.
+  Int_type vert_cyc[6] = { 1, 3, 2, 6, 4, 5 } ;
+
+  Int_type v1 = vert_cyc[ttet] ;
   xtt[1] = xts[v1] ;
   ytt[1] = yts[v1] ;
   ztt[1] = zts[v1] ;
-  Int_type v2 = hexhex_vert_cyc((ttet+1)%6) ;
+  Int_type v2 = vert_cyc[(ttet+1)%6] ;
   xtt[2] = xts[v2] ;
   ytt[2] = yts[v2] ;
   ztt[2] = zts[v2] ;
@@ -526,13 +485,13 @@ RAJA_INLINE void hex_intsc_subz
 
   cuda_intsc_tri_tet
       ( xdt, ydt, zdt, xtt, ytt, ztt,
-        vv_thr, vx_thr, vy_thr, vz_thr, scratch ) ;
+        vv_thr, vx_thr, vy_thr, vz_thr ) ;
 }
 
 }  // end namespace rajaperf
 
 
-#define INTSC_HEXHEX_BODY_SEQ_USING(hexhex_scratch_thr) \
+#define INTSC_HEXHEX_BODY_SEQ \
   Index_type ipair   = ith / tri_per_pair ; \
   Int_type dfacet  = ( ith / n_tsz_tets ) % n_dsz_tris ; \
   Int_type ttet    = ith % n_tsz_tets ; \
@@ -544,8 +503,7 @@ RAJA_INLINE void hex_intsc_subz
     Real_const_ptr xds = dsubz + 24*ipair ; \
     Real_const_ptr xts = tsubz + 24*ipair ; \
     hex_intsc_subz \
-        ( xds, xts, dfacet, ttet, vv_lo, vx_lo, vy_lo, vz_lo, \
-          hexhex_scratch_thr ) ; \
+        ( xds, xts, dfacet, ttet, vv_lo, vx_lo, vy_lo, vz_lo ) ; \
   } \
   if ( pair_base_thr > blk_base ) { \
     vv_hi = vv_lo ; \
@@ -558,21 +516,11 @@ RAJA_INLINE void hex_intsc_subz
     vz_lo = 0.0 ; \
   }
 
-#define INTSC_HEXHEX_BODY_SEQ \
-  HexHexScratchStorage<1> hexhex_scratch_storage ; \
-  HexHexScratchView hexhex_scratch_thr(hexhex_scratch_storage, 0) ; \
-  INTSC_HEXHEX_BODY_SEQ_USING(hexhex_scratch_thr)
-
-#define INTSC_HEXHEX_BODY_SHARED_SEQ \
-  RAJA_TEAM_SHARED HexHexScratchStorage<block_size> hexhex_scratch_storage ; \
-  HexHexScratchView hexhex_scratch_thr(hexhex_scratch_storage, thridx) ; \
-  INTSC_HEXHEX_BODY_SEQ_USING(hexhex_scratch_thr)
-
 
 // thridx is threadIdx.x
 
 #define INTSC_HEXHEX_BODY \
-  INTSC_HEXHEX_BODY_SHARED_SEQ \
+  INTSC_HEXHEX_BODY_SEQ \
   \
   __syncthreads() ; \
   for ( Index_type k = 1 ; k < RAJAPERF_HEXHEX_WARPSIZE ; k *= 2 ) { \
