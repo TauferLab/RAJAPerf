@@ -322,6 +322,8 @@ public:
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
+  template < size_t block_size, size_t reorder_num >
+  void runHipVariantReorder(VariantID vid);
 
 private:
 #if defined(RAJA_ENABLE_HIP)

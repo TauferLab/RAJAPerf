@@ -59,6 +59,73 @@ __global__ void FEMSweep3D( const Real_ptr Bdat,
   }
 }
 
+template < size_t block_size, size_t reorder_num >
+void FEMSWEEP::runHipVariantReorder(VariantID vid)
+{
+  setBlockSize(block_size);
+
+  const Index_type run_reps = getRunReps();
+
+  auto res{getHipResource()};
+
+  FEMSWEEP_DATA_SETUP;
+
+  if (vid == RAJA_HIP) {
+
+    constexpr bool async = true;
+    using launch_policy =
+        RAJA::LaunchPolicy<RAJA::hip_launch_t<async, block_size>>;
+    using teams_x = RAJA::LoopPolicy<RAJA::hip_block_x_direct>;
+    using teams_y = RAJA::LoopPolicy<RAJA::hip_block_y_direct>;
+    using teams_z = RAJA::LoopPolicy<RAJA::hip_block_z_direct>;
+    using threads_x =
+        RAJA::LoopPolicy<RAJA::hip_thread_size_x_loop<block_size>>;
+
+    const Index_type blocks_z = RAJA_DIVIDE_CEILING_INT(na, reorder_num);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("FEMSWEEP_1");
+      RAJA::launch<launch_policy>(res,
+        RAJA::LaunchParams(RAJA::Teams(reorder_num, ng, blocks_z),
+                           RAJA::Threads(block_size)),
+        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
+          RAJA::loop<teams_z>(ctx, RAJA::RangeSegment(0, blocks_z),
+            [&](Index_type bz) {
+              RAJA::loop<teams_y>(ctx, RAJA::RangeSegment(0, ng),
+                [&](Index_type g) {
+                  RAJA::loop<teams_x>(ctx, RAJA::RangeSegment(0, reorder_num),
+                    [&](Index_type chiplet) {
+                      const Index_type a = blocks_z * chiplet + bz;
+                      if (a < na) {
+                        FEMSWEEP_KERNEL_SETUP;
+                        Index_type nehp_pos = 0;
+                        for (Index_type hp = 0; hp < nhp; ++hp)
+                        {
+                          const Index_type nehp = phpaa_r[ohp + hp];
+                          RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, nehp),
+                            [&](Index_type k) {
+                              FEMSWEEP_KERNEL_HYPERPLANE_ELEMENT;
+                            });
+                          ctx.teamSync();
+                          nehp_pos += nehp;
+                        }
+                      }
+                    });
+                });
+            });
+        });
+      RP_CALI_SUBKERNEL_END("FEMSWEEP_1");
+    }
+    stopTimer();
+
+  } else {
+    getCout() << "\n FEMSWEEP : Unknown HIP variant id = " << vid
+              << std::endl;
+  }
+}
+
 template < size_t block_size >
 void FEMSWEEP::runHipVariantImpl(VariantID vid)
 {
@@ -171,7 +238,30 @@ void FEMSWEEP::runHipVariantImpl(VariantID vid)
 
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(FEMSWEEP, Hip, Base_HIP, RAJA_HIP)
+void FEMSWEEP::defineHipVariantTunings()
+{
+  for (VariantID vid : {Base_HIP, RAJA_HIP}) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        if (block_size == 0u) {
+          addVariantTuning<&FEMSWEEP::runHipVariantImpl<block_size>>(
+              vid, "block_auto", Index_type(0));
+        } else {
+          addVariantTuning<&FEMSWEEP::runHipVariantImpl<block_size>>(
+              vid, "block_"+std::to_string(block_size), Index_type(block_size));
+        }
+      }
+    });
+
+    if (vid == RAJA_HIP &&
+        (run_params.numValidGPUBlockSize() == 0u ||
+         run_params.validGPUBlockSize(256u))) {
+      addVariantTuning<&FEMSWEEP::runHipVariantReorder<256u, 6u>>(
+          vid, "reorder6_256", Index_type(256));
+    }
+  }
+}
 
 } // end namespace apps
 } // end namespace rajaperf
