@@ -37,7 +37,7 @@ MAT_MAT::MAT_MAT(const RunParams &params)
   setProblemDimensionality(2);
 
   setUsesFeature(Launch);
-  setProblemSizeAlignment(ProblemSizeAlignment::TiledTwoDimensional);
+  setProblemSizeAlignment(ProblemSizeAlignment::MatrixEdge);
 
   addVariantTunings();
 }

@@ -51,6 +51,7 @@ INTSC_HEXHEX::INTSC_HEXHEX(const RunParams& params)
   setMaxPerfectLoopDimensions(1);
   setProblemDimensionality(3);
 
+  setProblemSizeAlignment(ProblemSizeAlignment::Natural);
   setUsesFeature(Forall);
 
   addVariantTunings();

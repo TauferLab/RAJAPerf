@@ -42,7 +42,7 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
 
   setUsesFeature(Forall);
   setUsesFeature(Kernel);
-  setProblemSizeAlignment(ProblemSizeAlignment::Rectangular32ByBlockQuotient);
+  setProblemSizeAlignment(ProblemSizeAlignment::MatrixEdge);
 
   addVariantTunings();
 }
