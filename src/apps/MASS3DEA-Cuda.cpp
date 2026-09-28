@@ -28,9 +28,9 @@ __global__ void Mass3DEA(const Real_ptr B, const Real_ptr D, Real_ptr M) {
 
   MASS3DEA_0
 
-  GPU_FOREACH_THREAD_INC(iz, z, 1, mea::D1D) {
-    GPU_FOREACH_THREAD_INC(d, x, mea::D1D, mea::D1D) {
-      GPU_FOREACH_THREAD_INC(q, y, mea::Q1D, mea::D1D) {
+  GPU_FOREACH_THREAD_INC(iz, z, 1, mea::block_dim<block_size>::z) {
+    GPU_FOREACH_THREAD_INC(d, x, mea::D1D, mea::block_dim<block_size>::x) {
+      GPU_FOREACH_THREAD_INC(q, y, mea::Q1D, mea::block_dim<block_size>::y) {
         MASS3DEA_1
       }
     }
@@ -38,9 +38,9 @@ __global__ void Mass3DEA(const Real_ptr B, const Real_ptr D, Real_ptr M) {
 
   MASS3DEA_2
 
-  GPU_FOREACH_THREAD_INC(k1, x, mea::Q1D, mea::D1D) {
-    GPU_FOREACH_THREAD_INC(k2, y, mea::Q1D, mea::D1D) {
-      GPU_FOREACH_THREAD_INC(k3, z, mea::Q1D, mea::D1D) {
+  GPU_FOREACH_THREAD_INC(k1, x, mea::Q1D, mea::block_dim<block_size>::x) {
+    GPU_FOREACH_THREAD_INC(k2, y, mea::Q1D, mea::block_dim<block_size>::y) {
+      GPU_FOREACH_THREAD_INC(k3, z, mea::Q1D, mea::block_dim<block_size>::z) {
         MASS3DEA_3
       }
     }
@@ -48,9 +48,9 @@ __global__ void Mass3DEA(const Real_ptr B, const Real_ptr D, Real_ptr M) {
 
   __syncthreads();
 
-  GPU_FOREACH_THREAD_INC(i1, x, mea::D1D, mea::D1D) {
-    GPU_FOREACH_THREAD_INC(i2, y, mea::D1D, mea::D1D) {
-      GPU_FOREACH_THREAD_INC(i3, z, mea::D1D, mea::D1D) {
+  GPU_FOREACH_THREAD_INC(i1, x, mea::D1D, mea::block_dim<block_size>::x) {
+    GPU_FOREACH_THREAD_INC(i2, y, mea::D1D, mea::block_dim<block_size>::y) {
+      GPU_FOREACH_THREAD_INC(i3, z, mea::D1D, mea::block_dim<block_size>::z) {
         MASS3DEA_4
       }
     }
@@ -65,7 +65,9 @@ __global__ void Mass3DEA(const Real_ptr B, const Real_ptr D, Real_ptr M) {
     RAJA::launch<launch_policy>(                                              \
       res,                                                                    \
       RAJA::LaunchParams(RAJA::Teams(NE),                                     \
-                         RAJA::Threads(mea::D1D, mea::D1D, mea::D1D)),        \
+                         RAJA::Threads(mea::block_dim<block_size>::x,           \
+                                       mea::block_dim<block_size>::y,           \
+                                       mea::block_dim<block_size>::z)),        \
       [=] RAJA_HOST_DEVICE(launch_context ctx) {                              \
                                                                               \
         RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),                   \
@@ -150,7 +152,8 @@ void MASS3DEA::runCudaVariantImpl(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
         RP_CALI_SUBKERNEL_BEGIN("MASS3DEA_1");
-        dim3 nthreads_per_block(mea::D1D, mea::D1D, mea::D1D);
+        dim3 nthreads_per_block(mea::block_dim<block_size>::x, mea::block_dim<block_size>::y,
+                                   mea::block_dim<block_size>::z);
         constexpr size_t shmem = 0;
 
         RPlaunchCudaKernel((Mass3DEA<block_size>), NE, nthreads_per_block, shmem,
@@ -169,15 +172,15 @@ void MASS3DEA::runCudaVariantImpl(VariantID vid)
       constexpr bool async = true;
 
       using launch_policy = RAJA::LaunchPolicy<
-          RAJA::cuda_launch_t<async, mea::D1D * mea::D1D * mea::D1D>>;
+          RAJA::cuda_launch_t<async, block_size>>;
 
       using outer_x = RAJA::LoopPolicy<RAJA::cuda_block_x_direct>;
 
-      using inner_x = RAJA::LoopPolicy<RAJA::cuda_thread_size_x_loop<mea::D1D>>;
+      using inner_x = RAJA::LoopPolicy<RAJA::cuda_thread_size_x_loop<mea::block_dim<block_size>::x>>;
 
-      using inner_y = RAJA::LoopPolicy<RAJA::cuda_thread_size_y_loop<mea::D1D>>;
+      using inner_y = RAJA::LoopPolicy<RAJA::cuda_thread_size_y_loop<mea::block_dim<block_size>::y>>;
 
-      using inner_z = RAJA::LoopPolicy<RAJA::cuda_thread_size_z_loop<mea::D1D>>;
+      using inner_z = RAJA::LoopPolicy<RAJA::cuda_thread_size_z_loop<mea::block_dim<block_size>::z>>;
 
       using launch_context = RAJA::LaunchContext;
 
@@ -196,7 +199,7 @@ void MASS3DEA::runCudaVariantImpl(VariantID vid)
       constexpr bool async = true;
 
       using launch_policy = RAJA::LaunchPolicy<
-          RAJA::cuda_launch_t<async, mea::D1D * mea::D1D * mea::D1D>>;
+          RAJA::cuda_launch_t<async, block_size>>;
 
       using outer_x = RAJA::LoopPolicy<RAJA::cuda_block_x_direct>;
 

@@ -92,6 +92,18 @@
 namespace mea {
 constexpr RAJA::Index_type D1D = 4;
 constexpr RAJA::Index_type Q1D = 5;
+// Thread shape of a block_size-thread block: 64 = 4x4x4, 32 = 4x4x2, 16 = 4x4x1,
+// 8 = 4x2x1.  Loops stride by the block's extent, so fewer threads than D1D^3
+// loop over the element instead of one thread per (i1, i2, i3).
+template <size_t block_size>
+struct block_dim {
+  static constexpr RAJA::Index_type x = D1D;
+  static constexpr RAJA::Index_type y =
+      (block_size / D1D >= size_t(D1D)) ? D1D : RAJA::Index_type(block_size / D1D);
+  static constexpr RAJA::Index_type z = RAJA::Index_type(block_size) / (x * y);
+  static_assert(x * y * z == RAJA::Index_type(block_size) && z <= D1D,
+                "MASS3DEA block_size must be D1D * y * z with y, z <= D1D");
+};
 } // namespace mea
 #define MEA_B(x, y) B[x + mea::Q1D * y]
 #define MEA_M(i1, i2, i3, j1, j2, j3, e)                                       \
@@ -171,7 +183,7 @@ public:
 
  private:
   static const size_t default_gpu_block_size = mea::D1D * mea::D1D * mea::D1D;
-  using gpu_block_sizes_type = integer::list_type<default_gpu_block_size, 32, 8>;
+  using gpu_block_sizes_type = integer::list_type<default_gpu_block_size, 32, 16, 8>;
 
   Real_ptr m_B;
   Real_ptr m_D;

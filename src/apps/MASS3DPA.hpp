@@ -410,7 +410,7 @@ private:
       (camp::size<configuration::gpu_block_sizes>::value > 0),
       integer::make_gpu_block_size_list_type<default_gpu_block_size,
                                              MASS3DPAValidGPUBlockSize>,
-      integer::list_type<default_gpu_block_size, 32, 8>>::type;
+      integer::list_type<default_gpu_block_size, 32, 16, 8>>::type;
   using sycl_gpu_block_sizes_type =
       integer::make_gpu_block_size_list_type<sycl_gpu_block_size,
                                              MASS3DPAValidSyclGPUBlockSize>;
