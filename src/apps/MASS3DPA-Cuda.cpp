@@ -30,10 +30,8 @@ __global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
                          Index_type NE) {
   constexpr Index_type MD1 = mpa::D1D;
   constexpr Index_type MQ1 = mpa::Q1D;
-  static_assert(block_size % (MQ1 * MQ1) == 0u,
-                "MASS3DPA block_size must be divisible by Q1D*Q1D");
-  constexpr Index_type TBATCH =
-      static_cast<Index_type>(block_size / (MQ1 * MQ1));
+  using block_dim = mpa::block_dim<block_size>;
+  constexpr Index_type TBATCH = block_dim::z;
 
   const Index_type zbatch = threadIdx.z;
   const Index_type e = blockIdx.x * blockDim.z + zbatch;
@@ -43,42 +41,42 @@ __global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
   MASS3DPA_GPU_SMEM_SLICE(zbatch)
 
   if (valid_e) {
-    GPU_FOREACH_THREAD_INC(dy, y, MD1, MQ1) {
-      GPU_FOREACH_THREAD_INC(dx, x, MD1, MQ1){
+    GPU_FOREACH_THREAD_INC(dy, y, MD1, block_dim::y) {
+      GPU_FOREACH_THREAD_INC(dx, x, MD1, block_dim::x){
         MASS3DPA_1
       }
-      GPU_FOREACH_THREAD_INC(dx, x, MQ1, MQ1) {
+      GPU_FOREACH_THREAD_INC(dx, x, MQ1, block_dim::x) {
         MASS3DPA_2
       }
     }
   }
   if (threadIdx.z == 0) {
-    GPU_FOREACH_THREAD_INC(dy, y, MD1, MQ1) {
-      GPU_FOREACH_THREAD_INC(dx, x, MQ1, MQ1) {
+    GPU_FOREACH_THREAD_INC(dy, y, MD1, block_dim::y) {
+      GPU_FOREACH_THREAD_INC(dx, x, MQ1, block_dim::x) {
         MASS3DPA_2
       }
     }
   }
   __syncthreads();
   if (valid_e) {
-    GPU_FOREACH_THREAD_INC(dy, y, MD1, MQ1) {
-      GPU_FOREACH_THREAD_INC(qx, x, MQ1, MQ1) {
+    GPU_FOREACH_THREAD_INC(dy, y, MD1, block_dim::y) {
+      GPU_FOREACH_THREAD_INC(qx, x, MQ1, block_dim::x) {
         MASS3DPA_3
       }
     }
   }
   __syncthreads();
   if (valid_e) {
-    GPU_FOREACH_THREAD_INC(qy, y, MQ1, MQ1) {
-      GPU_FOREACH_THREAD_INC(qx, x, MQ1, MQ1) {
+    GPU_FOREACH_THREAD_INC(qy, y, MQ1, block_dim::y) {
+      GPU_FOREACH_THREAD_INC(qx, x, MQ1, block_dim::x) {
         MASS3DPA_4
       }
     }
   }
   __syncthreads();
   if (valid_e) {
-    GPU_FOREACH_THREAD_INC(qy, y, MQ1, MQ1) {
-      GPU_FOREACH_THREAD_INC(qx, x, MQ1, MQ1) {
+    GPU_FOREACH_THREAD_INC(qy, y, MQ1, block_dim::y) {
+      GPU_FOREACH_THREAD_INC(qx, x, MQ1, block_dim::x) {
         MASS3DPA_5
       }
     }
@@ -86,8 +84,8 @@ __global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
 
   __syncthreads();
   if (threadIdx.z == 0) {
-    GPU_FOREACH_THREAD_INC(d, y, MD1, MQ1) {
-      GPU_FOREACH_THREAD_INC(q, x, MQ1, MQ1) {
+    GPU_FOREACH_THREAD_INC(d, y, MD1, block_dim::y) {
+      GPU_FOREACH_THREAD_INC(q, x, MQ1, block_dim::x) {
         MASS3DPA_6
       }
     }
@@ -95,8 +93,8 @@ __global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
 
   __syncthreads();
   if (valid_e) {
-    GPU_FOREACH_THREAD_INC(qy, y, MQ1, MQ1) {
-      GPU_FOREACH_THREAD_INC(dx, x, MD1, MQ1) {
+    GPU_FOREACH_THREAD_INC(qy, y, MQ1, block_dim::y) {
+      GPU_FOREACH_THREAD_INC(dx, x, MD1, block_dim::x) {
         MASS3DPA_7
       }
     }
@@ -104,8 +102,8 @@ __global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
   __syncthreads();
 
   if (valid_e) {
-    GPU_FOREACH_THREAD_INC(dy, y, MD1, MQ1) {
-      GPU_FOREACH_THREAD_INC(dx, x, MD1, MQ1) {
+    GPU_FOREACH_THREAD_INC(dy, y, MD1, block_dim::y) {
+      GPU_FOREACH_THREAD_INC(dx, x, MD1, block_dim::x) {
         MASS3DPA_8
       }
     }
@@ -113,8 +111,8 @@ __global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
 
   __syncthreads();
   if (valid_e) {
-    GPU_FOREACH_THREAD_INC(dy, y, MD1, MQ1) {
-      GPU_FOREACH_THREAD_INC(dx, x, MD1, MQ1) {
+    GPU_FOREACH_THREAD_INC(dy, y, MD1, block_dim::y) {
+      GPU_FOREACH_THREAD_INC(dx, x, MD1, block_dim::x) {
         MASS3DPA_9
       }
     }
@@ -125,10 +123,8 @@ template <size_t block_size>
 void MASS3DPA::runCudaVariantImpl(VariantID vid) {
   constexpr Index_type MD1 = mpa::D1D;
   constexpr Index_type MQ1 = mpa::Q1D;
-  static_assert(block_size % (MQ1 * MQ1) == 0u,
-                "MASS3DPA block_size must be divisible by Q1D*Q1D");
-  constexpr Index_type TBATCH =
-      static_cast<Index_type>(block_size / (MQ1 * MQ1));
+  using block_dim = mpa::block_dim<block_size>;
+  constexpr Index_type TBATCH = block_dim::z;
   setBlockSize(block_size);
 
   const Index_type run_reps = getRunReps();
@@ -148,7 +144,7 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
     for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
 
       RP_CALI_SUBKERNEL_BEGIN("MASS3DPA_1");
-      dim3 nthreads_per_block(MQ1, MQ1, TBATCH);
+      dim3 nthreads_per_block(block_dim::x, block_dim::y, block_dim::z);
       constexpr size_t shmem = 0;
 
       RPlaunchCudaKernel( (Mass3DPA<block_size>),
@@ -170,9 +166,9 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
 
     using outer_x = RAJA::LoopPolicy<RAJA::cuda_block_x_direct>;
 
-    using inner_x = RAJA::LoopPolicy<RAJA::cuda_thread_size_x_loop<MQ1>>;
+    using inner_x = RAJA::LoopPolicy<RAJA::cuda_thread_size_x_loop<block_dim::x>>;
 
-    using inner_y = RAJA::LoopPolicy<RAJA::cuda_thread_size_y_loop<MQ1>>;
+    using inner_y = RAJA::LoopPolicy<RAJA::cuda_thread_size_y_loop<block_dim::y>>;
 
     using inner_z = RAJA::LoopPolicy<RAJA::cuda_thread_size_z_direct<TBATCH>>;
 
@@ -184,7 +180,7 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
       //clang-format off
       RAJA::launch<launch_policy>( res,
         RAJA::LaunchParams(RAJA::Teams(num_elem_blocks),
-                         RAJA::Threads(MQ1, MQ1, TBATCH)),
+                         RAJA::Threads(block_dim::x, block_dim::y, block_dim::z)),
         [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 
           RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, num_elem_blocks),

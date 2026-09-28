@@ -25,7 +25,7 @@ namespace polybench
 //
 // Define thread block shape for CUDA execution
 //
-#define j_block_sz (32)
+#define j_block_sz ((block_size < 32) ? block_size : 32)
 #define i_block_sz (block_size / j_block_sz)
 
 #define GEMVER_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA \
@@ -328,4 +328,3 @@ RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_GEMVER, Cuda, Base_C
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_CUDA
-

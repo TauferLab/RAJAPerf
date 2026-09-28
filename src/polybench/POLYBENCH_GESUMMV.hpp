@@ -137,7 +137,7 @@ private:
   using gpu_block_sizes_type = typename std::conditional<
       (camp::size<configuration::gpu_block_sizes>::value > 0),
       integer::make_gpu_block_size_list_type<default_gpu_block_size>,
-      integer::list_type<default_gpu_block_size, 128, 64, 32>>::type;
+      integer::list_type<default_gpu_block_size, 128, 64, 32, 16, 8, 4, 2, 1>>::type;
 
   Index_type m_N;
 

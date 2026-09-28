@@ -175,6 +175,20 @@ namespace mpa {
 constexpr RAJA::Index_type D1D = 2;
 constexpr RAJA::Index_type Q1D = 2;
 constexpr RAJA::Index_type TBATCH = 16;
+template <size_t block_size>
+struct block_dim {
+  static_assert(block_size > 0u, "MASS3DPA block_size must be positive");
+  static constexpr RAJA::Index_type x =
+      block_size >= size_t(Q1D) ? Q1D : RAJA::Index_type(block_size);
+  static constexpr RAJA::Index_type y =
+      block_size / size_t(x) >= size_t(Q1D)
+          ? Q1D
+          : RAJA::Index_type(block_size / size_t(x));
+  static constexpr RAJA::Index_type z =
+      RAJA::Index_type(block_size / size_t(x * y));
+  static_assert(x * y * z == RAJA::Index_type(block_size),
+                "MASS3DPA block_size must factor into its thread dimensions");
+};
 } // namespace mpa
 
 #define MPA_B(x, y) B[x + MQ1 * y]
@@ -358,8 +372,9 @@ struct MASS3DPAValidGPUBlockSize
 {
   static constexpr bool valid(size_t block_size)
   {
-    return block_size > 0u &&
-           block_size % (mpa::Q1D * mpa::Q1D) == 0u;
+    return block_size == 1u || block_size == 2u ||
+           (block_size > 0u &&
+            block_size % size_t(mpa::Q1D * mpa::Q1D) == 0u);
   }
 };
 
@@ -410,7 +425,7 @@ private:
       (camp::size<configuration::gpu_block_sizes>::value > 0),
       integer::make_gpu_block_size_list_type<default_gpu_block_size,
                                              MASS3DPAValidGPUBlockSize>,
-      integer::list_type<default_gpu_block_size, 32, 16, 8>>::type;
+      integer::list_type<default_gpu_block_size, 32, 16, 8, 4, 2, 1>>::type;
   using sycl_gpu_block_sizes_type =
       integer::make_gpu_block_size_list_type<sycl_gpu_block_size,
                                              MASS3DPAValidSyclGPUBlockSize>;
