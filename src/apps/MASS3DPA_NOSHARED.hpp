@@ -70,9 +70,11 @@ public:
 private:
   static const size_t default_gpu_block_size =
       mpa::Q1D * mpa::Q1D * mpa::TBATCH;
-  using gpu_block_sizes_type =
+  using gpu_block_sizes_type = typename std::conditional<
+      (camp::size<configuration::gpu_block_sizes>::value > 0),
       integer::make_gpu_block_size_list_type<default_gpu_block_size,
-                                             MASS3DPAValidGPUBlockSize>;
+                                             MASS3DPAValidGPUBlockSize>,
+      integer::list_type<default_gpu_block_size, 32, 8>>::type;
 
   Real_ptr m_B;
   Real_ptr m_Bt;

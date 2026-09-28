@@ -406,9 +406,11 @@ private:
   static const size_t default_gpu_block_size = mpa::Q1D * mpa::Q1D * mpa::TBATCH;
   static const size_t sycl_gpu_block_size = mpa::Q1D * mpa::Q1D;
 
-  using gpu_block_sizes_type =
+  using gpu_block_sizes_type = typename std::conditional<
+      (camp::size<configuration::gpu_block_sizes>::value > 0),
       integer::make_gpu_block_size_list_type<default_gpu_block_size,
-                                             MASS3DPAValidGPUBlockSize>;
+                                             MASS3DPAValidGPUBlockSize>,
+      integer::list_type<default_gpu_block_size, 32, 8>>::type;
   using sycl_gpu_block_sizes_type =
       integer::make_gpu_block_size_list_type<sycl_gpu_block_size,
                                              MASS3DPAValidSyclGPUBlockSize>;
