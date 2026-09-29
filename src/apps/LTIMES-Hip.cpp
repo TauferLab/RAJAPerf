@@ -237,6 +237,118 @@ void LTIMES::runHipVariantImpl(VariantID vid)
 }
 
 
+template < size_t block_size, size_t reorder_num >
+void LTIMES::runHipVariantReorder(VariantID vid)
+{
+  setBlockSize(block_size);
+
+  const Index_type run_reps = getRunReps();
+
+  auto res{getHipResource()};
+
+  LTIMES_DATA_SETUP;
+
+  if (vid == RAJA_HIP) {
+
+    constexpr bool async = true;
+
+    using launch_policy =
+        RAJA::LaunchPolicy<
+            RAJA::hip_launch_t<async, m_block_sz*g_block_sz*z_block_sz>>;
+
+    using teams_x = RAJA::LoopPolicy<RAJA::hip_block_x_direct>;
+
+    using threads_x =
+        RAJA::LoopPolicy<RAJA::hip_thread_size_x_direct<m_block_sz>>;
+
+    using threads_y =
+        RAJA::LoopPolicy<RAJA::hip_thread_size_y_direct<g_block_sz>>;
+
+    using threads_z =
+        RAJA::LoopPolicy<RAJA::hip_thread_size_z_direct<z_block_sz>>;
+
+    using d_policy = RAJA::LoopPolicy<RAJA::seq_exec>;
+
+    const Index_type m_grid_sz =
+        RAJA_DIVIDE_CEILING_INT(*num_m, m_block_sz);
+    const Index_type g_grid_sz =
+        RAJA_DIVIDE_CEILING_INT(*num_g, g_block_sz);
+    const Index_type z_grid_sz =
+        RAJA_DIVIDE_CEILING_INT(*num_z, z_block_sz);
+    const Index_type num_logical_blocks =
+        m_grid_sz * g_grid_sz * z_grid_sz;
+    const Index_type blocks_per_xcd =
+        RAJA_DIVIDE_CEILING_INT(num_logical_blocks, reorder_num);
+    const Index_type num_teams = reorder_num * blocks_per_xcd;
+
+    startTimer();
+    // Loop counter increment uses macro to quiet C++20 compiler warning
+    for (RepIndex_type irep = 0; irep < run_reps; RP_REPCOUNTINC(irep)) {
+
+      RP_CALI_SUBKERNEL_BEGIN("LTIMES_1");
+      RAJA::launch<launch_policy>(res,
+          RAJA::LaunchParams(RAJA::Teams(num_teams),
+                             RAJA::Threads(m_block_sz,
+                                           g_block_sz,
+                                           z_block_sz)),
+          [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
+
+            RAJA::loop<teams_x>(ctx, RAJA::RangeSegment(0, num_teams),
+              [&](Index_type physical_block) {
+                const Index_type logical_block =
+                    blocks_per_xcd * (physical_block % reorder_num) +
+                    physical_block / reorder_num;
+
+                if (logical_block < num_logical_blocks) {
+                  const Index_type m_block = logical_block % m_grid_sz;
+                  const Index_type g_block =
+                      (logical_block / m_grid_sz) % g_grid_sz;
+                  const Index_type z_block =
+                      logical_block / (m_grid_sz * g_grid_sz);
+
+                  RAJA::loop<threads_z>(
+                      ctx, RAJA::RangeSegment(0, z_block_sz),
+                      [&](Index_type tz) {
+                        const IZ z(z_block * z_block_sz + tz);
+                        RAJA::loop<threads_y>(
+                            ctx, RAJA::RangeSegment(0, g_block_sz),
+                            [&](Index_type tg) {
+                              const IG g(g_block * g_block_sz + tg);
+                              RAJA::loop<threads_x>(
+                                  ctx, RAJA::RangeSegment(0, m_block_sz),
+                                  [&](Index_type tm) {
+                                    const IM m(m_block * m_block_sz + tm);
+                                    if (z < num_z && g < num_g && m < num_m) {
+                                      RAJA::loop<d_policy>(
+                                          ctx, IDRange(0, *num_d),
+                                          [&](ID d) {
+                                            LTIMES_BODY
+                                          }
+                                      ); // RAJA::loop<d_policy>
+                                    }
+                                  }
+                              ); // RAJA::loop<threads_x>
+                            }
+                        ); // RAJA::loop<threads_y>
+                      }
+                  ); // RAJA::loop<threads_z>
+                }
+              }
+            ); // RAJA::loop<teams_x>
+
+          } // outer lambda (ctx)
+      ); // RAJA::launch
+      RP_CALI_SUBKERNEL_END("LTIMES_1");
+
+    } // loop over kernel reps
+    stopTimer();
+
+  } else {
+    getCout() << "\n LTIMES : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+
 void LTIMES::defineHipVariantTunings()
 {
 
@@ -252,6 +364,9 @@ void LTIMES::defineHipVariantTunings()
               vid, "kernel_"+std::to_string(block_size));
           addVariantTuning<&LTIMES::runHipVariantImpl<block_size, 1>>(
               vid, "launch_"+std::to_string(block_size));
+          addVariantTuning<&LTIMES::runHipVariantReorder<block_size, 6>>(
+              vid, "reorder6_"+std::to_string(block_size),
+              Index_type(block_size));
         } else {
           addVariantTuning<&LTIMES::runHipVariantImpl<block_size, 0>>(
               vid, "block_"+std::to_string(block_size));

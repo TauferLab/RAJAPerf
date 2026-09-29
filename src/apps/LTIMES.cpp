@@ -46,6 +46,7 @@ LTIMES::LTIMES(const RunParams& params)
   setUsesFeature(Kernel);
   setUsesFeature(Launch);
   setUsesFeature(View);
+  setProblemSizeAlignment(ProblemSizeAlignment::Natural);
 
   addVariantTunings();
 }

@@ -118,6 +118,8 @@ public:
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size, size_t tune_idx >
   void runHipVariantImpl(VariantID vid);
+  template < size_t block_size, size_t reorder_num >
+  void runHipVariantReorder(VariantID vid);
   template < size_t work_group_size, size_t tune_idx >
   void runSyclVariantImpl(VariantID vid);
 
