@@ -256,9 +256,9 @@ void FEMSWEEP::defineHipVariantTunings()
 
     if (vid == RAJA_HIP &&
         (run_params.numValidGPUBlockSize() == 0u ||
-         run_params.validGPUBlockSize(256u))) {
-      addVariantTuning<&FEMSWEEP::runHipVariantReorder<256u, 6u>>(
-          vid, "reorder6_256", Index_type(256));
+         run_params.validGPUBlockSize(64u))) {
+      addVariantTuning<&FEMSWEEP::runHipVariantReorder<64u, 6u>>(
+          vid, "reorder6_64", Index_type(64));
     }
   }
 }
