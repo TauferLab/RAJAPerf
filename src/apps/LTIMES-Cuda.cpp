@@ -250,12 +250,15 @@ void LTIMES::defineCudaVariantTunings()
 
         if (vid == RAJA_CUDA) {
           addVariantTuning<&LTIMES::runCudaVariantImpl<block_size, 0>>(
-              vid, "kernel_"+std::to_string(block_size));
+              vid, "kernel_"+std::to_string(block_size),
+              Index_type(block_size));
           addVariantTuning<&LTIMES::runCudaVariantImpl<block_size, 1>>(
-              vid, "launch_"+std::to_string(block_size));
+              vid, "launch_"+std::to_string(block_size),
+              Index_type(block_size));
         } else {
           addVariantTuning<&LTIMES::runCudaVariantImpl<block_size, 0>>(
-              vid, "block_"+std::to_string(block_size));
+              vid, "block_"+std::to_string(block_size),
+              Index_type(block_size));
         }
 
       }
